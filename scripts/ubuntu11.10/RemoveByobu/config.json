@@ -1,0 +1,10 @@
+{
+    "name": "node0.4.12",
+    "description": "stable 0.4 release of node",
+    "parameters" : {
+       
+    },
+	"param-out" : {
+
+	}
+}

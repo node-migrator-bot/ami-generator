@@ -1,0 +1,10 @@
+{
+    "name": "nginx",
+    "description": "stable release of nginx",
+    "parameters" : {
+       
+    },
+	"param-out" : {
+
+	}
+}

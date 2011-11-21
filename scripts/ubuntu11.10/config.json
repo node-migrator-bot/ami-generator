@@ -1,0 +1,14 @@
+{
+    "name": "ubuntu",
+    "description": "ubuntu stable",
+    "parameters" : {
+        "base" : "Base AMI image"
+    },
+    "base-options" : {
+        "ami-a7f539ce" : "us-east 32-bit Ubuntu 11.10 Oneiric EBS boot",
+		"ami-bbf539d2" : "us-east 64-bit Ubuntu 11.10 Oneiric EBS boot"
+    },
+	"param-out" : {
+		"distro": "ubuntu"
+	}
+}
