@@ -7,7 +7,7 @@ region=$(expr match $zone '\(.*\).')
 uptime=$(uptime)
 
 #let service know we are done
-curl http://test.perfectapi.com/ami/v1/completed/$instance_id
+curl http://test.perfectapi.com/ami/v1/completed/region/$region/instance/$instance_id
 
 # Send status email
 cat > /tmp/mailmessage.tmp <<EOF
