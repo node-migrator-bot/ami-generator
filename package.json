@@ -1,0 +1,15 @@
+{   "name":             "ami-generator"
+,   "version":          "0.0.1"
+,   "author":           "Steve Campbell"
+,   "engines": {
+        "node" : ">=0.4.12"
+    }
+,   "dependencies":    {   
+        "ec2": ">=0.0.8"
+    }
+,   "repository" :
+    {
+        "type" : "git",
+        "url" : "git://github.com/perfectapi/ami-generator.git"
+    }
+}
