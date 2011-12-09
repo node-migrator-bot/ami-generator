@@ -1,0 +1,6 @@
+{   
+    "root": "ubuntu11.10"
+,   "base-ami": "ami-a562a9cc"
+,   "base-ami-description": "us-east Ubuntu 11.10 Oneiric EBS boot, 32 bit"
+,   "scripts": ["Node0.4.12", "Node0.4.12/cloud9", "NginxProxy"]
+}
