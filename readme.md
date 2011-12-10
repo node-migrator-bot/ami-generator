@@ -2,6 +2,10 @@ ami-generator
 ====
 Generate Amazon AMI images easily.  This repository contains a collection of scripts that initialize your image to your specification.
 
+WIP
+---
+This project is still a work-in-progress.  YMMV.
+
 Installing
 ----
     $ npm install amigen
@@ -18,7 +22,7 @@ This allows the script to access AWS on you behalf (to generate the images).  On
 var gen = require('amigen');
 
 var config = {   
-        "root": "./scripts"
+        "root": "./node_modules/amigen/scripts"
     ,   "baseAMI": "ami-a562a9cc"
     ,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/Node0.4.12/cloud9", "ubuntu11.10/NginxProxy", "ubuntu11.10/Node0.4.12/nide"]
     };
