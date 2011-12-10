@@ -9,8 +9,8 @@ Installing
 Usage
 ----
 Before using, set two environment variables with your AWS keys:
-  AWS_ACCESS_KEY_ID
-  AWS_SECRET_ACCESS_KEY
+`AWS_ACCESS_KEY_ID`
+and `AWS_SECRET_ACCESS_KEY`
   
 This allows the script to access AWS on you behalf (to generate the images).  Once that is done, usage goes something like this:
 
