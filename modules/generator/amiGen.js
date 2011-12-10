@@ -1,6 +1,6 @@
 var ec2 = require("ec2");
 
-exports.generateAMI = function(instanceId, name, callback) {
+exports.generateAMI = function(instanceId, name, tag, callback) {
     // Create an instance of the AmazonEC2Client.
     var client = ec2.createClient(
         { key:      process.env["AWS_ACCESS_KEY_ID"]
@@ -17,12 +17,33 @@ exports.generateAMI = function(instanceId, name, callback) {
         Name: name
     }, function(response) {
         newImageId = response.imageId;
-        //now terminate the instance...
+        
+        //tag the image...
+        client.call("CreateTags", {
+            "ResourceId.1": newImageId,
+            "Tag.1.Key": "spec",
+            "Tag.1.Value": tag
+        }, function(response) {
+            //tags done
+        });
+        
+        //finally terminate the instance...
         client.call("TerminateInstances", {
             InstanceId: instanceId
         }, function(response) {
-            //all done
+            //terminated
         });
+    });
+
+    //need to make sure the image is ready before we exit
+    client.poll("DescribeImages", {
+        "Filter.1.Name": "state", 
+        "Filter.1.Value.1": "available",
+        "Filter.2.Name": "name",
+        "Filter.2.Value.1": name
+    }, function(response) {
+        var imageSet = response.imagesSet;
+        return (imageSet.length > 0);
     });
     
     // When all of the Amazon Query API calls and polls complete, we know that our
