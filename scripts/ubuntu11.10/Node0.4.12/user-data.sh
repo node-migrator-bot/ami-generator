@@ -1,13 +1,12 @@
 #install n package manager first
 
-sudo -u $MY_USER sh -c "HOME=/home/$MY_USER \
-	&& cd \
-	&& git clone git://github.com/visionmedia/n.git \
-	&& cd n \
-	&& make install \
-	&& cd \
-	&& rm -rf n"
-
+cd
+git clone git://github.com/perfectapi/n.git
+cd n
+make install
+cd 
+rm -rf n
+	
 #now install node
 cd
 n v0.4.12
@@ -41,9 +40,9 @@ $ n
 
 To install or switch to a different version of node, use:
 
-$ n latest
+$ sudo n latest
 or a specific version:
-$ n v0.6.2
+$ sudo n v0.6.2
 
 See http://elegantcode.com/2011/02/09/taking-baby-steps-with-node-js-node-version-management-with-n/ 
 for more details and examples.
