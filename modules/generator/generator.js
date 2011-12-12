@@ -38,9 +38,8 @@ exports.getImageUsingConfig = function(config, callback) {
         var scriptParts = config.scripts[i].split('/');
         
         var currentScript = '';
-		var PATH_SEP = (process.platform=='Win32') ? '\\': '/';
         for(var j=0;j<scriptParts.length;j++) {
-            var sep = (j==0) ? '': PATH_SEP;
+            var sep = (j==0) ? '': '/';
             currentScript = currentScript + sep + scriptParts[j];
             
             scripts.push(currentScript);
