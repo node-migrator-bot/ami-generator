@@ -18,7 +18,6 @@ exports.generateInstance = function(userData, baseAMI, callback) {
     client.call("RunInstances", {
       ImageId: baseAMI, 
       UserData: userData,   
-      KeyName: "stevekey",
       InstanceType: "t1.micro",
       MinCount: 1, MaxCount:1
     }, function (response) {

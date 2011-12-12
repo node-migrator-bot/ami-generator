@@ -16,6 +16,15 @@ exports.getImageUsingConfig = function(config, callback) {
     
     */
     
+    if (!process.env["AWS_ACCESS_KEY_ID"]) {
+        callback("AWS_ACCESS_KEY_ID environment variable is required.");
+        return;
+    };
+    if (!process.env["AWS_SECRET_ACCESS_KEY"]) {
+        callback("AWS_SECRET_ACCESS_KEY environment variable is required.");
+        return;
+    };    
+    
     console.log('root = ' + config.root);
     console.log('baseAMI = ' + config.baseAMI);
     console.log('scripts = ' + config.scripts);

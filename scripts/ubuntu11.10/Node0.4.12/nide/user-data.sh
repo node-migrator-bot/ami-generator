@@ -1,5 +1,5 @@
 PROXY_NAME=nide
-PROXY_FILE=nide_proxy.conf
+PROXY_FILE=${PROXY_NAME}_proxy.conf
 PROXY_PORT=8123
 
 # ensure nginx installed
@@ -9,9 +9,23 @@ apt-get install -y nginx
 cat > /etc/nginx/sites-available/$PROXY_FILE <<EOF
 server {
     listen       80;
-    # proxy to $PROXY_NAME
-    location /PROXY_NAME {
-        proxy_pass         http://127.0.0.1:$PROXY_PORT/;
+    
+    # proxy to $PROXY_NAME - from example at http://wiki.apache.org/couchdb/Nginx_As_a_Reverse_Proxy
+    location /$PROXY_NAME {
+        rewrite /$PROXY_NAME/(.*) /\$1 break;
+        proxy_pass http://localhost:$PROXY_PORT;
+        proxy_redirect off;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+
+    # there is an issue with socket.io going to the root always, so we workaround it...
+    location /socket.io {
+        rewrite /socket.io/(.*) /\$1 break;
+        proxy_pass http://localhost:$PROXY_PORT;
+        proxy_redirect off;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     }
 }
 EOF

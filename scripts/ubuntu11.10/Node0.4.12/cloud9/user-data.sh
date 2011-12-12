@@ -10,7 +10,7 @@ cat > /etc/nginx/sites-available/$PROXY_FILE <<EOF
 server {
     listen       80;
     # proxy to $PROXY_NAME
-    location /PROXY_NAME {
+    location /$PROXY_NAME {
         proxy_pass         http://127.0.0.1:$PROXY_PORT/;
     }
 }
