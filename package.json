@@ -1,10 +1,10 @@
 {   "name":             "amigen"
-,   "version":          "0.0.3"
+,   "version":          "0.0.4"
     ,"description": "Tool for generating Amazon EC2 AMI images with pre-installed software"
 ,   "author":  {"name": "Steve Campbell", "email": "steve@perfectapi.com" }
     ,"keywords": "AMI,AWS,EC2,Amazon"
     ,"homepage": "http://www.perfectapi.com/"
-    ,"bugs": {"url": "https://github.com/perfectapi/ami-generator/issues", "email": "steve@perfectapi.com" }
+    ,"bugs": {"url": "https://github.com/perfectapi/ami-generator/issues", "email": "amigen@perfectapi.com" }
     ,"main": "modules/generator/generator.js"
 ,   "engines": {
         "node" : ">=0.4.12"
