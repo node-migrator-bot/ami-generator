@@ -21,3 +21,5 @@ This image has been created automatically by amigen, a node.js tool for creating
 Amazon EC2 AMI images.
 
 EOF
+
+chmod 666 /home/$MY_USER/readme.txt

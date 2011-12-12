@@ -28,3 +28,5 @@ set ylabel "response time (ms)"
 plot "out.dat" using 9 smooth sbezier with lines title "Series A"
 
 EOF
+
+chmod 666 /home/$MY_USER/plot.p
