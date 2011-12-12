@@ -33,7 +33,7 @@ chmod 666 /home/$MY_USER/plot.p
 cat >> /home/$MY_USER/readme.txt <<EOF
 
 Using Apache-Bench benchmarking
-========================================
+================================
 
 An example test is:
 $ ab -n 8000 -c 100 http://example.com:8000/

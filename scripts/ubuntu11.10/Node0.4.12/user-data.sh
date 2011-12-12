@@ -1,20 +1,51 @@
-NODE_VERSION=0.4.12  #0.4.12 is previous stable, 0.6.2 is current stable
-NODE_FILE=node-v$NODE_VERSION
+#install n package manager first
 
-#node compile & install
+sudo -u $MY_USER sh -c "HOME=/home/$MY_USER \
+	&& cd \
+	&& git clone git://github.com/visionmedia/n.git \
+	&& cd n \
+	&& make install \
+	&& cd \
+	&& rm -rf n"
+
+#now install node
 cd
-wget http://nodejs.org/dist/$NODE_FILE.tar.gz
-tar -zxvf $NODE_FILE.tar.gz
-cd $NODE_FILE
-./configure
-make
-make install
-cd
-rm -rf $NODE_FILE.tar.gz $NODE_FILE
+n v0.4.12
 
-
-# install npm - can't really have node without npm
+# install npm - can't really have node without npm.  
 cd
 curl http://npmjs.org/install.sh | clean=yes sh
 
-chown -R $MY_USER /usr/local/{share/man,bin,lib/node,lib/node_modules}
+#this ensures we have easy access to folders we should have access to
+#chown -R $MY_USER /usr/local/{share/man,bin,lib/node,lib/node_modules}
+
+cat >> /home/$MY_USER/readme.txt <<EOF
+
+Using Node
+==========
+
+To run a node program, type 
+$ node server.js
+...where server.js is the name of the node program
+
+To determine which version of node is setup, type
+$ node --version
+
+Using "n" version switcher for Node
+===================================
+
+Node has been installed with the version switcher "n".  In order to see which node
+versions are installed, type:
+
+$ n
+
+To install or switch to a different version of node, use:
+
+$ n latest
+or a specific version:
+$ n v0.6.2
+
+See http://elegantcode.com/2011/02/09/taking-baby-steps-with-node-js-node-version-management-with-n/ 
+for more details and examples.
+
+EOF
