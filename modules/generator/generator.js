@@ -119,7 +119,9 @@ getImage = function(
                     });
                  }
             });
-            
+			
+		    client.on("error", function(err) {callback(err); return; });
+
             // Run the transaction described above.
             client.execute();
         }

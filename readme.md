@@ -3,6 +3,7 @@ ami-generator
 Generate Amazon AMI images easily.  This repository contains a collection of scripts that initialize your image to your specification.
 
 The algorithm used to combine the scripts creates intermediate images which can be re-used when generating new images.   Requesting the same image again will not re-generate it, it will just return the AMI id of the existing image.  However, if one of the following changes, then an image will be re-generated:
+
 * baseAMI image
 * any of the scripts that were run for the existing image
 * additional scripts are added to the configuration

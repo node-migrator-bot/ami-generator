@@ -9,7 +9,6 @@ rm -rf n
 	
 #now install node
 cd
-n v0.4.12
 n latest
 
 #no need to install npm - latest node installs it already
@@ -38,7 +37,8 @@ To install or switch to a different version of node, use:
 
 $ sudo n latest
 or a specific version:
-$ sudo n v0.6.2
+$ sudo n v0.4.12
+(might take a while to compile if the version is not yet installed)
 
 See http://elegantcode.com/2011/02/09/taking-baby-steps-with-node-js-node-version-management-with-n/ 
 for more details and examples.
