@@ -11,7 +11,10 @@ rm -rf n
 cd
 n latest
 
-#no need to install npm - latest node installs it already
+#no need to install npm - latest node installs it already.  
+#grr, but "n" screws it up, so install anyway
+cd
+curl http://npmjs.org/install.sh | clean=yes sh
 
 cat >> /home/$MY_USER/readme.txt <<EOF
 
