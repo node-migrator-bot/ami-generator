@@ -8,7 +8,7 @@ exports.generateAMI = function(instanceId, name, tag, callback) {
     });
     
     var newImageId;
-    
+	
     console.log('About to create image from ' + instanceId + ' with name ' + name);
     
     client.call("CreateImage", {
@@ -17,7 +17,8 @@ exports.generateAMI = function(instanceId, name, tag, callback) {
         Name: name
     }, function(response) {
         newImageId = response.imageId;
-        
+		console.log('requested AMI, waiting...');
+		
         //tag the image...
         client.call("CreateTags", {
             "ResourceId.1": newImageId,
@@ -25,6 +26,7 @@ exports.generateAMI = function(instanceId, name, tag, callback) {
             "Tag.1.Value": tag
         }, function(response) {
             //tags done
+			console.log('Tagged new AMI');
         });
         
         //finally terminate the instance...
@@ -32,6 +34,7 @@ exports.generateAMI = function(instanceId, name, tag, callback) {
             InstanceId: instanceId
         }, function(response) {
             //terminated
+			console.log('terminated image');
         });
     });
 
@@ -46,6 +49,15 @@ exports.generateAMI = function(instanceId, name, tag, callback) {
         return (imageSet.length > 0);
     });
     
+	client.on("error", function (err) {
+		if (err=="Error: connect Unknown system errno 10060") {
+			//lets assume the timeout is on the poll.  In that case, (maybe) we can ignore the error
+			console.log('Encountered ' + err + '.  Ignoring.');
+		} else {
+			callback('error generating ami - ' + err);
+		}		
+    });
+	
     // When all of the Amazon Query API calls and polls complete, we know that our
     // Amazon EC2 instance is ready for use.
     client.on("end", function () {

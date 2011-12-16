@@ -13,8 +13,8 @@ exports.generateInstance = function(userData, baseAMI, callback) {
         reservationId,
         newImageId;
         
-     // Call the "RunInstances" action to create a new EC2 instance. The Amazon Query
-    // API call will return immediately, but the instance will take a while to boot.
+    // Call the "RunInstances" action to create a new EC2 instance. The Amazon Query
+    // API call will return immediately, but the instance will take a while to initialize.
     client.call("RunInstances", {
       ImageId: baseAMI, 
       UserData: userData,   
@@ -23,26 +23,20 @@ exports.generateInstance = function(userData, baseAMI, callback) {
     }, function (response) {
       reservationId   = response.reservationId;
       instanceId      = response.instancesSet[0].instanceId;
-    });
-    
-    // Therefore, we poll the  "DescribeInstances" action, calling it once every
-    // second until the instance state indicates that it is running.
-    client.poll("DescribeInstances", function (struct) {
-      var reservation = struct.reservationSet.filter(function (reservation) {
-        return reservation.reservationId == reservationId;
-      })[0];
-      if (reservation) {
-          var instance = reservation.instancesSet.filter(function (instance) {
-            return instance.instanceId == instanceId;
-          })[0];
-          
-          return (instance.instanceState.name == "stopped");     //because the script automatically stops the instance once user-data.sh completes     
-      } else {
-          //happens when the original RunInstances call has not yet returned. (It returns "immediately", but still async)
-          return false;
-      }
+	  
+	  poll(client, reservationId, instanceId);
     });
 
+	client.on("error", function (err) {
+		if (err=="Error: connect Unknown system errno 10060") {
+			//lets assume the timeout is on the poll.  In that case, we can ignore the error
+			console.log('Encountered ' + err + '.  Ignoring & restarting polling');
+			poll(client, reservationId, instanceId);
+		} else {
+			callback('error generating instance - ' + err);
+		}
+    });
+	
     // When all of the Amazon Query API calls and polls complete, we know that our
     // Amazon EC2 instance is ready for use.
     client.on("end", function () {
@@ -55,3 +49,23 @@ exports.generateInstance = function(userData, baseAMI, callback) {
 
 };
 
+function poll(client, reservationId, instanceId) {
+    //We poll the  "DescribeInstances" action, calling it once every
+    // second until the instance state indicates that it is done.
+    client.poll("DescribeInstances", function (struct) {
+      var reservation = struct.reservationSet.filter(function (reservation) {
+        return reservation.reservationId == reservationId;
+      })[0];
+      if (reservation) {
+          var instance = reservation.instancesSet.filter(function (instance) {
+            return instance.instanceId == instanceId;
+          })[0];
+          
+		  //console.log('polling for instance to finish...')
+          return (instance.instanceState.name == "stopped");     //because the script automatically stops the instance once user-data.sh completes     
+      } else {
+          //happens when the original RunInstances call has not yet returned. (It returns "immediately", but still async)
+          return false;
+      }
+    });
+}

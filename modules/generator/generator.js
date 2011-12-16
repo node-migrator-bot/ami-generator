@@ -84,7 +84,7 @@ getImage = function(
         if (err) {
             callback(err);
         } else {
-             var client = ec2.createClient(
+            var client = ec2.createClient(
                 { key:      process.env["AWS_ACCESS_KEY_ID"]
                 , secret:   process.env["AWS_SECRET_ACCESS_KEY"]
             });
@@ -120,8 +120,10 @@ getImage = function(
                  }
             });
 			
-		    client.on("error", function(err) {callback(err); return; });
-
+			client.on("error", function (err) {
+				callback('error finding image - ' + err);
+			});
+			
             // Run the transaction described above.
             client.execute();
         }

@@ -11,3 +11,7 @@ export HOME="/home/root"
 #ensure apt-get packages do not prompt
 export DEBIAN_FRONTEND=noninteractive	
 
+#save some information for debug purposes
+echo "The user-data script has basename `basename $0`, dirname `dirname $0`"
+echo "The present working directory is `pwd`"
+
