@@ -6,11 +6,13 @@
     ,"homepage": "http://www.perfectapi.com/"
     ,"bugs": {"url": "https://github.com/perfectapi/ami-generator/issues", "email": "amigen@perfectapi.com" }
     ,"main": "modules/generator/generator.js"
+	,"bin": "./bin/amigen.js"
 ,   "engines": {
         "node" : ">=0.4.12"
     }
 ,   "dependencies":    {   
-        "ec2": ">=0.0.8"
+        "ec2": ">=0.0.8",
+		"commander": ">=0.5.0"
     }
 ,   "repository" :
     {

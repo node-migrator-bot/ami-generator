@@ -103,7 +103,7 @@ getImage = function(
                 } else {
                     //does notexist yet
                     console.log('no matching image yet - will generate now...could take a while...');
-                    instanceGen.generateInstance(userData64, baseAMI, function(err, instanceId) {
+                    instanceGen.generateInstance(userData64, baseAMI, name, function(err, instanceId) {
                         if (err) {
                             callback(err);
                         } else {

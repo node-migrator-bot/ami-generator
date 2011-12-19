@@ -1,6 +1,6 @@
 var ec2 = require("ec2");
 
-exports.generateInstance = function(userData, baseAMI, callback) {
+exports.generateInstance = function(userData, baseAMI, name, callback) {
    
     // Create an instance of the AmazonEC2Client.
     var client = ec2.createClient(
@@ -19,6 +19,7 @@ exports.generateInstance = function(userData, baseAMI, callback) {
       ImageId: baseAMI, 
       UserData: userData,   
       InstanceType: "t1.micro",
+	  ClientToken: name,			//this allows that we can run concurrently with other processes which are also generating instances
       MinCount: 1, MaxCount:1
     }, function (response) {
       reservationId   = response.reservationId;

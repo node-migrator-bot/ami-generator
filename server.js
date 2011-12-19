@@ -3,7 +3,7 @@ var gen = require('./modules/generator/generator.js');
 var config = {   
         "root": "./scripts"
     ,   "baseAMI": "ami-bf62a9d6"
-    ,   "scripts": ["ubuntu11.10/node-latest", "ubuntu11.10/ApacheBench", "ubuntu11.10/juju"]
+    ,   "scripts": ["ubuntu11.10/node-latest/core-js"]
     };
     
 gen.getImageUsingConfig(config, function(err, amiId) {
