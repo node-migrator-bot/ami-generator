@@ -108,14 +108,12 @@ function GetNormalizedLineage(lineage, start) {
 	start = start || 0;
 	var lineageParts = lineage.replace(/\\/g, '/').split(',');
 	var newLineage = "";
-	var lastPart = "";
 	var sep = "";
 	for (var i=start;i<lineageParts.length;i++) {
 		var thisPart = lineageParts[i];
-		if (lastPart != "") thisPart=thisPart.replace(lastPart, "");   //don't duplicate the last part
-		lastPart = lineageParts[i] + '/';
+		var thisPartSplit = thisPart.split('/');
 		
-		newLineage = newLineage + sep + thisPart;
+		newLineage = newLineage + sep + thisPartSplit[thisPartSplit.length - 1];
 		sep = ",";
 	};
 	
