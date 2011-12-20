@@ -197,7 +197,8 @@ getPreUserData = function(rootPath, script, callback) {
         
         var currentFile = path.resolve(currentPath, 'pre.sh');
         if (path.existsSync(currentFile)) {
-            var b =  fs.readFileSync(currentFile);
+            var b = fs.readFileSync(currentFile, 'utf8');
+			b = b.replace(/\r\n/g, '\n');
             ws.write(b);
             ws.write("\n");
         }
@@ -227,7 +228,8 @@ getPostUserData = function(rootPath, script, callback) {
         
         var currentFile = path.resolve(currentPath, 'post.sh');
         if (path.existsSync(currentFile)) {
-            var b =  fs.readFileSync(currentFile);
+            var b = fs.readFileSync(currentFile, 'utf8');
+			b = b.replace(/\r\n/g, '\n');
             ws.write(b);
             ws.write("\n");
         }
@@ -261,7 +263,8 @@ getUserData = function(rootPath, script, callback) {
         
         var currentFile = path.resolve(myPath, 'user-data.sh');
         if (path.existsSync(currentFile)) {
-            var b =  fs.readFileSync(currentFile);
+            var b = fs.readFileSync(currentFile, 'utf8');
+			b = b.replace(/\r\n/g, '\n');
             ws.write(b);
             ws.write("\n");
         }
