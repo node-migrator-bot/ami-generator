@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
-
 var program = require('commander');
 var gen = require('../modules/generator/generator.js');
 var path = require('path');
 var fs = require('fs');
 
+var packagePath = path.resolve(__dirname, '..', 'package.json');
+var packageJson = JSON.parse(fs.readFileSync(packagePath)); 
+
 program
+  .version(packageJson.version)
   .usage('[options] scripts')
   .option('-r, --root', 'Root path to user-data scripts')
   .option('-a, --ami', 'Base AMI image name')

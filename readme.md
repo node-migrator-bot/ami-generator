@@ -2,20 +2,6 @@ ami-generator
 ====
 Generate Amazon AMI images easily.  This repository contains a collection of scripts that initialize your image to your specification.
 
-The algorithm used to combine the scripts creates intermediate images which can be re-used when generating new images.   Requesting the same image again will not re-generate it, it will just return the AMI id of the existing image.  However, if one of the following changes, then an image will be re-generated:
-
-* baseAMI image
-* any of the scripts that were run for the existing image
-* additional scripts are added to the configuration
-
-Unexpected Costs
-----------------
-The first time this technique is used to generate images, it costs about $0.02 per script used (on your AWS account).  Subsequent generation of the same image will not do any additional work, so it is safe to re-run the process multiple times.  
-
-Various intermediate images and snapshots may be created in your account.  You can safely delete these, but it is recommended you keep them around if you are exploring several configurations (because they are re-used).
-
-Should the application fail for some reason, it may leave a t1.micro instance running.   These instances are easily identified by their lack of a `KeyPairName` value, and can be safely deleted.
-
 WIP
 ---
 This project is still a work-in-progress.  YMMV, especially on the included scripts.
@@ -28,15 +14,37 @@ Terminology
 
 Installing
 ----
+There are two ways to use amigen - either as a library or as a command-line app.  To use as a library, install using npm within your own node.js project:
+
     $ npm install amigen
 
-Usage
+To install as a command-line application, use npm to install globally:
+
+    $ npm install -g amigen
+
+Prerequisites
 ----
 Before using, set two environment variables with your AWS keys:
 `AWS_ACCESS_KEY_ID`
 and `AWS_SECRET_ACCESS_KEY`
   
-This allows the script to access AWS on you behalf (to generate the images).  Once that is done, usage goes something like this:
+This allows the script to access AWS on you behalf (to generate the images).  
+
+Usage - as command-line
+----
+The command-line app is named `amigen`.  It works from both Windows and Linux.  Typing:
+
+	$ amigen --help
+	
+will output command-line help.  Typing:
+
+	$ amigen 
+
+will output a list of available scripts.
+
+Usage - as library
+----
+Once that is done, usage goes something like this:
 
 ```javascript
 var gen = require('amigen');

@@ -1,6 +1,6 @@
 var ec2 = require("ec2");
 
-exports.generateInstance = function(userData, baseAMI, name, callback) {
+exports.generateInstance = function(userData, baseAMI, uniqueName, callback) {
    
     // Create an instance of the AmazonEC2Client.
     var client = ec2.createClient(
@@ -19,12 +19,25 @@ exports.generateInstance = function(userData, baseAMI, name, callback) {
       ImageId: baseAMI, 
       UserData: userData,   
       InstanceType: "t1.micro",
-	  ClientToken: name,			//this allows that we can run concurrently with other processes which are also generating instances
+	  //ClientToken: name,			//this allows that we can run concurrently with other processes, or restart after a failure
       MinCount: 1, MaxCount:1
     }, function (response) {
       reservationId   = response.reservationId;
       instanceId      = response.instancesSet[0].instanceId;
 	  
+		client.call("CreateTags", {
+			"ResourceId.1": instanceId,
+			"Tag.1.Key": "generator",
+			"Tag.1.Value": "https://github.com/perfectapi/ami-generator",
+			"Tag.2.Key": "uniqueName",
+			"Tag.2.Value": uniqueName	
+		}, function(response) {
+			//tags done
+			//console.log(response);
+			console.log('Tagged new image');
+		});
+
+	  //console.log(response);
 	  poll(client, reservationId, instanceId);
     });
 
@@ -33,6 +46,7 @@ exports.generateInstance = function(userData, baseAMI, name, callback) {
 			//lets assume the timeout is on the poll.  In that case, we can ignore the error
 			console.log('Encountered ' + err + '.  Ignoring & restarting polling');
 			poll(client, reservationId, instanceId);
+			client.execute();
 		} else {
 			callback('error generating instance - ' + err);
 		}
@@ -53,20 +67,23 @@ exports.generateInstance = function(userData, baseAMI, name, callback) {
 function poll(client, reservationId, instanceId) {
     //We poll the  "DescribeInstances" action, calling it once every
     // second until the instance state indicates that it is done.
-    client.poll("DescribeInstances", function (struct) {
-      var reservation = struct.reservationSet.filter(function (reservation) {
-        return reservation.reservationId == reservationId;
-      })[0];
-      if (reservation) {
-          var instance = reservation.instancesSet.filter(function (instance) {
-            return instance.instanceId == instanceId;
-          })[0];
-          
-		  //console.log('polling for instance to finish...')
-          return (instance.instanceState.name == "stopped");     //because the script automatically stops the instance once user-data.sh completes     
-      } else {
-          //happens when the original RunInstances call has not yet returned. (It returns "immediately", but still async)
-          return false;
-      }
-    });
+    client.poll("DescribeInstances",  {
+        "Filter.1.Name": "reservation-id", 
+        "Filter.1.Value.1": reservationId
+    }, function (struct) {
+		var reservation = struct.reservationSet.filter(function (reservation) {
+			return reservation.reservationId == reservationId;
+		})[0];
+		if (reservation) {
+			var instance = reservation.instancesSet.filter(function (instance) {
+				return instance.instanceId == instanceId;
+			})[0];
+
+			//console.log('polling for instance to finish...')
+			return (instance.instanceState.name == "stopped");     //because the script automatically stops the instance once user-data.sh completes     
+		} else {
+			//happens when the original RunInstances call has not yet returned. (It returns "immediately", but still async)
+			return false;
+		}
+	});
 }

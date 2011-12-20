@@ -27,19 +27,19 @@ exports.getImageUsingConfig = function(config, callback) {
     
     console.log('root = ' + config.root);
     console.log('baseAMI = ' + config.baseAMI);
-    console.log('scripts = ' + config.scripts);
     
     var rootPath = path.resolve(config.root);
     var baseAMI = config.baseAMI;
     
     //take the list of scripts and sort and normalize them.
     var scripts = [];
+	var osSep = (process.platform=='win32') ? '\\': '/';
     for(var i=0;i<config.scripts.length;i++) {
-        var scriptParts = config.scripts[i].split('/');
+        var scriptParts = config.scripts[i].split(osSep);
         
         var currentScript = '';
         for(var j=0;j<scriptParts.length;j++) {
-            var sep = (j==0) ? '': '/';
+            var sep = (j==0) ? '': osSep;
             currentScript = currentScript + sep + scriptParts[j];
             
             scripts.push(currentScript);
@@ -55,17 +55,19 @@ exports.getImageUsingConfig = function(config, callback) {
         };
     }
     
-    console.log(scriptsWithoutDups);
+    console.log('scripts = ' + scriptsWithoutDups);
     
     //now we have a list of scripts that can be executed in order    
     var myScript = scriptsWithoutDups.shift();
-    getImage(rootPath, myScript, baseAMI, recurse = function(err, newAMI) {
+	var lineage = 'amigen,' + baseAMI + ',' + myScript;
+    getImage(rootPath, myScript, lineage, baseAMI, recurse = function(err, newAMI) {
         if (err) {callback(err); return;}
         
         if (scriptsWithoutDups.length > 0) {
             //go to next script
             myScript = scriptsWithoutDups.shift();
-            getImage(rootPath, myScript, newAMI, recurse);  //handy recursion trick, *evil laugh*
+			lineage = lineage + ',' + myScript;
+            getImage(rootPath, myScript, lineage, newAMI, recurse);  //handy recursion trick, *evil laugh*
         } else {
             callback(null, newAMI);
         }
@@ -75,12 +77,13 @@ exports.getImageUsingConfig = function(config, callback) {
 getImage = function(
     rootPath,     //lowest path with scripts
     script,       //partial path to the script location we want to use
+	lineage,	  //lineage of this image
     baseAMI,      //AMI to use as a basis for the new AMI image
     callback) {
     
     console.log('getting image from ' + path.join(rootPath, script) + ' using base ' + baseAMI);
     
-    getUserDataHash(rootPath, script, baseAMI, function(err, name, userData64) {
+    getUserDataHash(rootPath, script, baseAMI, function(err, uniqueName, userData64) {
         if (err) {
             callback(err);
         } else {
@@ -89,12 +92,12 @@ getImage = function(
                 , secret:   process.env["AWS_SECRET_ACCESS_KEY"]
             });
             
-            console.log('name of image should be ' + name);
+            console.log('Unique name of image should be ' + uniqueName);
             
             //see if we can find the image...
             client.call("DescribeImages", {
-                "Filter.1.Name": "name",
-                "Filter.1.Value.1": name
+                "Filter.1.Name": "tag:uniqueName",
+                "Filter.1.Value.1": uniqueName
             }, function(response) {
                 var imageSet = response.imagesSet;
                 if (imageSet.length > 0) {
@@ -103,11 +106,11 @@ getImage = function(
                 } else {
                     //does notexist yet
                     console.log('no matching image yet - will generate now...could take a while...');
-                    instanceGen.generateInstance(userData64, baseAMI, name, function(err, instanceId) {
+                    instanceGen.generateInstance(userData64, baseAMI, uniqueName, function(err, instanceId) {
                         if (err) {
                             callback(err);
                         } else {
-                            amiGen.generateAMI(instanceId, name, path.join(rootPath, script), function(err, amiId) {
+                            amiGen.generateAMI(instanceId, uniqueName, lineage, path.join(rootPath, script), function(err, amiId) {
                                 if (err) {
                                     callback(err, amiId);
                                 } else {
@@ -130,18 +133,31 @@ getImage = function(
     });
 };
 
+function formatWordKey(buf) {
+	var key = "";  //buf.toString('hex');
+	var letters = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz";  //no I,O,i,l,o because they hard to read
+	for(var i=0;i<buf.length;i++) {
+	  var letterNumber = buf[i] % (52 - 5);  //subtract unused letters
+	  key = key + letters[letterNumber];
+	};
+	
+	return key;
+}
+    
 getUserDataHash = function(rootPath, script, baseAMI, callback) {
     getUserData64(rootPath, script, function(err, userData64) {
         if (err) {
             callback(err, '', userData64);
         } else {
             var hash = crypto.createHash('sha1');
+			
             hash.update(userData64);   //in case the scripts change
             hash.update(baseAMI);      //in case we get a new baseAMI.  This also takes care of uniqueness for multiple scripts at same level
-            hash.update(rootPath);     //part of the script name that was run
-            hash.update(script);       //other part of the script name that was run
-            var result = hash.digest('hex');
-            
+            //hash.update(rootPath.replace('\\', '/'));     //part of the script name that was run
+            hash.update(script.replace(/\\/g, '/'));       //other part of the script name that was run
+			
+            var result = formatWordKey(new Buffer(hash.digest()));
+			
             callback(null, result, userData64);
         }
     });
