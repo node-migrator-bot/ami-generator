@@ -20,7 +20,7 @@ There are two ways to use amigen - either as a library or as a command-line app.
 
 To install as a command-line application, use npm to install globally:
 
-    $ npm install -g amigen
+    $ sudo npm install -g amigen
 
 Prerequisites
 ----
