@@ -24,18 +24,6 @@ exports.generateInstance = function(userData, baseAMI, uniqueName, callback) {
     }, function (response) {
       reservationId   = response.reservationId;
       instanceId      = response.instancesSet[0].instanceId;
-	  
-		client.call("CreateTags", {
-			"ResourceId.1": instanceId,
-			"Tag.1.Key": "generator",
-			"Tag.1.Value": "https://github.com/perfectapi/ami-generator",
-			"Tag.2.Key": "uniqueName",
-			"Tag.2.Value": uniqueName	
-		}, function(response) {
-			//tags done
-			//console.log(response);
-			console.log('Tagged new image');
-		});
 
 	  //console.log(response);
 	  poll(client, reservationId, instanceId);
@@ -80,7 +68,21 @@ function poll(client, reservationId, instanceId) {
 			})[0];
 
 			//console.log('polling for instance to finish...')
-			return (instance.instanceState.name == "stopped");     //because the script automatically stops the instance once user-data.sh completes     
+			if (instance.instanceState.name == "stopped") {
+				//because the script automatically stops the instance once user-data.sh completes
+				client.call("CreateTags", {
+					"ResourceId.1": instanceId,
+					"Tag.1.Key": "generator",
+					"Tag.1.Value": "https://github.com/perfectapi/ami-generator"
+				}, function(response) {
+					//tags done
+					console.log('Tagged instance ' + instanceId);
+				});
+				
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			//happens when the original RunInstances call has not yet returned. (It returns "immediately", but still async)
 			return false;
