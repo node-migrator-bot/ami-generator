@@ -56,7 +56,7 @@ exports.getImageUsingConfig = function(config, callback) {
     }
     
     console.log('scripts = ' + scriptsWithoutDups);
-    
+			
     //now we have a list of scripts that can be executed in order    
     var myScript = scriptsWithoutDups.shift();
 	var lineage = 'amigen,' + baseAMI + ',' + myScript;
@@ -110,7 +110,7 @@ getImage = function(
                         if (err) {
                             callback(err);
                         } else {
-                            amiGen.generateAMI(instanceId, uniqueName, lineage, path.join(rootPath, script), function(err, amiId) {
+                            amiGen.generateAMI(instanceId, uniqueName, lineage, function(err, amiId) {
                                 if (err) {
                                     callback(err, amiId);
                                 } else {

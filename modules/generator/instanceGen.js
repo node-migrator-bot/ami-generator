@@ -26,14 +26,14 @@ exports.generateInstance = function(userData, baseAMI, uniqueName, callback) {
       instanceId      = response.instancesSet[0].instanceId;
 
 	  //console.log(response);
-	  poll(client, reservationId, instanceId);
+	  pollForReady(client, instanceId);
     });
 
 	client.on("error", function (err) {
 		if (err=="Error: connect Unknown system errno 10060") {
-			//lets assume the timeout is on the poll.  In that case, we can ignore the error
+			//lets assume the timeout is on the pollForStopped.  In that case, we can ignore the error
 			console.log('Encountered ' + err + '.  Ignoring & restarting polling');
-			poll(client, reservationId, instanceId);
+			pollForStopped(client, reservationId, instanceId);
 			client.execute();
 		} else {
 			callback('error generating instance - ' + err);
@@ -52,40 +52,46 @@ exports.generateInstance = function(userData, baseAMI, uniqueName, callback) {
 
 };
 
-function poll(client, reservationId, instanceId) {
+function pollForReady(client, instanceId) {
     //We poll the  "DescribeInstances" action, calling it once every
     // second until the instance state indicates that it is done.
     client.poll("DescribeInstances",  {
-        "Filter.1.Name": "reservation-id", 
-        "Filter.1.Value.1": reservationId
-    }, function (struct) {
-		var reservation = struct.reservationSet.filter(function (reservation) {
-			return reservation.reservationId == reservationId;
-		})[0];
-		if (reservation) {
-			var instance = reservation.instancesSet.filter(function (instance) {
-				return instance.instanceId == instanceId;
-			})[0];
-
-			//console.log('polling for instance to finish...')
-			if (instance.instanceState.name == "stopped") {
-				//because the script automatically stops the instance once user-data.sh completes
-				client.call("CreateTags", {
-					"ResourceId.1": instanceId,
-					"Tag.1.Key": "generator",
-					"Tag.1.Value": "https://github.com/perfectapi/ami-generator"
-				}, function(response) {
-					//tags done
-					console.log('Tagged instance ' + instanceId);
-				});
-				
-				return true;
-			} else {
-				return false;
-			}
+        "Filter.1.Name": "instance-id", 
+        "Filter.1.Value.1": instanceId,
+		"Filter.2.Name": "instance-state-name",
+		"Filter.2.Value": "running"
+    }, function (result) {
+		if (result.reservationSet.length > 0) {
+			console.log('Instance ' + instanceId + ' is running');
+			client.call("CreateTags", {
+				"ResourceId.1": instanceId,
+				"Tag.1.Key": "generator",
+				"Tag.1.Value": "https://github.com/perfectapi/ami-generator",
+				"Tag.2.Key": "generatedOnOS",
+				"Tag.2.Value": process.platform
+			}, function(response) {
+				//tags done
+				console.log('Tagged instance ' + instanceId);
+			});
+			
+			pollForStopped(client, instanceId);
+			
+			return true;
 		} else {
-			//happens when the original RunInstances call has not yet returned. (It returns "immediately", but still async)
 			return false;
 		}
+	});
+}
+
+function pollForStopped(client, instanceId) {
+    //We poll the  "DescribeInstances" action, calling it once every
+    // second until the instance state indicates that it is done.
+    client.poll("DescribeInstances",  {
+        "Filter.1.Name": "instance-id", 
+        "Filter.1.Value.1": instanceId,
+		"Filter.2.Name": "instance-state-name",
+		"Filter.2.Value": "stopped"
+    }, function (result) {
+		return (result.reservationSet.length > 0);
 	});
 }
