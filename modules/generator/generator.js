@@ -190,7 +190,7 @@ getAllPathsToRoot = function(rootPath, script) {
 getPreUserData = function(rootPath, script, callback) {
     var allPaths = getAllPathsToRoot(rootPath, script);
 
-    var newFile = path.join(allPaths[0], 'pre.tmp');    
+    var newFile = path.join(findTempDirectory, 'pre.tmp');    
     var ws = fs.createWriteStream(newFile);
     while(allPaths.length > 0) {
         var currentPath = allPaths.shift();  //take from front, which is root
@@ -220,7 +220,7 @@ getPreUserData = function(rootPath, script, callback) {
 getPostUserData = function(rootPath, script, callback) {
     var allPaths = getAllPathsToRoot(rootPath, script);
 
-    var newFile = path.join(allPaths[0], 'post.tmp');    
+    var newFile = path.join(findTempDirectory, 'post.tmp');    
     var ws = fs.createWriteStream(newFile);
     while(allPaths.length > 0) {
         var currentPath = allPaths.pop();  //take from end, which is final path
@@ -252,7 +252,7 @@ getUserData = function(rootPath, script, callback) {
     
     console.log('path = ' + myPath);
     
-    var newFile = path.join(myPath, 'user-data.tmp');
+    var newFile = path.join(findTempDirectory(), 'user-data.tmp');
     var ws = fs.createWriteStream(newFile);
     getPreUserData(rootPath, script, function(err, data) {
         if (err) { callback(err); return; }
@@ -285,4 +285,16 @@ getUserData = function(rootPath, script, callback) {
     ws.on('error', function(err) {
         callback(err);
     });
+};
+
+var findTempDirectory = function() {
+	var defaultTempDirectory = '/tmp';
+	var tempEnvironmentVariables = ['TMPDIR', 'TMP', 'TEMP'];
+
+  for(var i = 0; i < tempEnvironmentVariables.length; i++) {
+    var value = process.env[tempEnvironmentVariables[i]];
+    if(value)
+      return fs.realpathSync(value);
+  }
+  return fs.realpathSync(defaultTempDirectory);
 };
