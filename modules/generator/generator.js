@@ -190,7 +190,7 @@ getAllPathsToRoot = function(rootPath, script) {
 getPreUserData = function(rootPath, script, callback) {
     var allPaths = getAllPathsToRoot(rootPath, script);
 
-    var newFile = path.join(findTempDirectory, 'pre.tmp');    
+    var newFile = path.join(findTempDirectory(), 'pre.tmp');    
     var ws = fs.createWriteStream(newFile);
     while(allPaths.length > 0) {
         var currentPath = allPaths.shift();  //take from front, which is root
@@ -220,7 +220,7 @@ getPreUserData = function(rootPath, script, callback) {
 getPostUserData = function(rootPath, script, callback) {
     var allPaths = getAllPathsToRoot(rootPath, script);
 
-    var newFile = path.join(findTempDirectory, 'post.tmp');    
+    var newFile = path.join(findTempDirectory(), 'post.tmp');    
     var ws = fs.createWriteStream(newFile);
     while(allPaths.length > 0) {
         var currentPath = allPaths.pop();  //take from end, which is final path
