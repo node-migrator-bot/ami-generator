@@ -44,7 +44,7 @@ will output a list of available scripts.
 
 Usage - as library
 ----
-Once that is done, usage goes something like this:
+Library usage goes something like this:
 
 ```javascript
 var gen = require('amigen');
@@ -52,7 +52,7 @@ var gen = require('amigen');
 var config = {   
         "root": "./node_modules/amigen/scripts"
     ,   "baseAMI": "ami-a562a9cc"
-    ,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/node-latest"]
+    ,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/nodejs-latest"]
     };
     
 gen.getImageUsingConfig(config, function(err, amiId) {

@@ -15,7 +15,7 @@ call = function(config, command, parameters, callback) {
 	
 	client.on("error", function(err) {
 		if (err=="Error: connect Unknown system errno 10060") {
-			//retry, its a timeout
+			//retry, its a connection timeout
 			client.call(command, parameters, function(response) {
 				callback(null, response);
 			});

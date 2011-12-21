@@ -56,6 +56,15 @@ exports.getImageUsingConfig = function(config, callback) {
     }
     
     console.log('scripts = ' + scriptsWithoutDups);
+	
+	//validate scripts exist
+	for(var i=0;i<scriptsWithoutDups.length;i++) {
+		var userData = path.resolve(rootPath, scriptsWithoutDups[i], 'user-data.sh');
+		if (!path.existsSync(userData)) {
+			callback('Script ' + scriptsWithoutDups[i] + ' does not exist.');
+			return;
+		}
+	}
 			
     //now we have a list of scripts that can be executed in order    
     var myScript = scriptsWithoutDups.shift();

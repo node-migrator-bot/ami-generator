@@ -37,7 +37,7 @@ exports.generateAMI = function(instanceId, uniqueName, lineage, callback) {
 				"Tag.4.Key": "generatedOnOS",
 				"Tag.4.Value": process.platform
 			}, function(err, response) {
-				console.log('Tagged new AMI');
+				console.log('Tagged new AMI ' + newImageId);
 			});
 			
 			ec2.call(ec2config, "TerminateInstances", {
