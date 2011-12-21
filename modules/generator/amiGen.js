@@ -1,11 +1,10 @@
-var ec2 = require("ec2");
+var ec2 = require(__dirname + "/ec2proxy.js");
 
 exports.generateAMI = function(instanceId, uniqueName, lineage, callback) {
-    // Create an instance of the AmazonEC2Client.
-    var client = ec2.createClient(
-        { key:      process.env["AWS_ACCESS_KEY_ID"]
-        , secret:   process.env["AWS_SECRET_ACCESS_KEY"]
-    });
+
+    var ec2config = {
+		"AWS_ACCESS_KEY_ID": process.env["AWS_ACCESS_KEY_ID"],
+		"AWS_SECRET_ACCESS_KEY": process.env["AWS_SECRET_ACCESS_KEY"] };
 	
 	var newImageId;
 	var nameLineage = GetNormalizedLineage(lineage, 2).substring(0,255);  //trim as needed
@@ -16,51 +15,18 @@ exports.generateAMI = function(instanceId, uniqueName, lineage, callback) {
 	
     console.log('About to create image from ' + instanceId + ' with name "' + name + '"');
     
-    client.call("CreateImage", {
+    ec2.call(ec2config, "CreateImage", {
         InstanceId: instanceId,
         Description: description,
         Name: name
-    }, function(response) {
+    }, function(err, response) {
         newImageId = response.imageId;
 		console.log('requested AMI, id will be ' + newImageId + '...waiting...');
 
-		//need to make sure the image is ready before we exit
-		pollForPending(client, instanceId, uniqueName, newImageId, name, description);
-	});
-    
-	client.on("error", function (err) {
-		if (err=="Error: connect Unknown system errno 10060") {
-			//we are PROBABLY busy polling, so retry is ok...
-			console.log('Encountered timeout error during polling: ' + err + '.  Retrying...');
-			pollForPending(client, instanceId, uniqueName, newImageId, name, description);
-			client.execute();
-		} else {
-			callback('error generating ami - ' + err);
-		}
-    });
-	
-    // When all of the Amazon Query API calls and polls complete, we know that our
-    // Amazon EC2 instance is ready for use.
-    client.on("end", function () {
-        console.log("Created a new AMI with id: " + newImageId);
-        callback(null, newImageId);
-    });
-    
-    // Run the trasaction described above.
-    client.execute();
-};
-
-function pollForPending(client, instanceId, uniqueName, newImageId, name, description) {
-    client.poll("DescribeImages", {
-        "Filter.1.Name": "name",
-        "Filter.1.Value.1": name
-    }, function(response) {
-        var imageSet = response.imagesSet;
-        if (imageSet.length == 0) {
-			return false;
-		} else {
-			//tag the new image...
-			client.call("CreateTags", {
+		//need to make sure the image is ready before we continue
+		ec2.waitForImageState(ec2config, newImageId, 'available', 1000, function(result) {
+		
+			ec2.call(ec2config, "CreateTags", {
 				"ResourceId.1": newImageId,
 				"Tag.1.Key": "lineage",
 				"Tag.1.Value": description,
@@ -70,39 +36,22 @@ function pollForPending(client, instanceId, uniqueName, newImageId, name, descri
 				"Tag.3.Value": "https://github.com/perfectapi/ami-generator",
 				"Tag.4.Key": "generatedOnOS",
 				"Tag.4.Value": process.platform
-			}, function(response) {
-				//tags done
-				//console.log(response);
+			}, function(err, response) {
 				console.log('Tagged new AMI');
 			});
 			
-			//terminate the instance...
-			client.call("TerminateInstances", {
+			ec2.call(ec2config, "TerminateInstances", {
 				InstanceId: instanceId
-			}, function(response) {
-				//terminated
+			}, function(err, response) {
 				console.log('terminated instance ' + instanceId);
 			});
 			
-			//continue polling 
-			pollForAvailable(client, instanceId, uniqueName, newImageId, name, description);
-			
-			return true;
-		}
-    });
-}
+			console.log("Created a new AMI with id: " + newImageId);
+			callback(null, newImageId);
+		});
+	});
+};
 
-function pollForAvailable(client, instanceId, uniqueName, newImageId, name, description) {
-    client.poll("DescribeImages", {
-        "Filter.1.Name": "state", 
-        "Filter.1.Value.1": "available",
-        "Filter.2.Name": "name",
-        "Filter.2.Value.1": name
-    }, function(response) {
-        var imageSet = response.imagesSet;
-        return (imageSet.length > 0) 
-    });
-}
 
 function GetNormalizedLineage(lineage, start) {
 	start = start || 0;

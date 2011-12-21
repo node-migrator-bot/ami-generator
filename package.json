@@ -1,5 +1,5 @@
 {   "name":             "amigen"
-,   "version":          "0.0.10"
+,   "version":          "0.0.11"
     ,"description": "Tool for generating Amazon EC2 AMI images with pre-installed software"
 ,   "author":  {"name": "Steve Campbell", "email": "steve@perfectapi.com" }
     ,"keywords": "AMI,AWS,EC2,Amazon"
