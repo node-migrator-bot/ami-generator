@@ -7,29 +7,36 @@ var amiGen = require(path.join(__dirname, 'amiGen.js'));
 
 exports.getImageUsingConfig = function(config, callback) {
     /*
-    example config:
+    example config (perfectapi compatible):
     {   
-        "root": "ubuntu11.10"
-    ,   "baseAMI": "ami-a562a9cc"
+		"environment" : {
+			"AWS_ACCESS_KEY_ID":"abuhgsdjashg",
+			"AWS_SECRET_ACCESS_KEY":"ajdshkh234hjkhask"
+		};
+		"options": {
+			"root": "ubuntu11.10"
+		,   "ami": "ami-a562a9cc"
+		}
     ,   "scripts": ["Node0.4.12", "Node0.4.12/cloud9", "NginxProxy"]
     }
     
     */
     
-    if (!process.env["AWS_ACCESS_KEY_ID"]) {
+    if (config.environment.AWS_ACCESS_KEY_ID=="") {
         callback("AWS_ACCESS_KEY_ID environment variable is required.");
         return;
     };
-    if (!process.env["AWS_SECRET_ACCESS_KEY"]) {
+    if (config.environment.AWS_SECRET_ACCESS_KEY=="") {
         callback("AWS_SECRET_ACCESS_KEY environment variable is required.");
         return;
     };    
     
-    console.log('root = ' + config.root);
-    console.log('baseAMI = ' + config.baseAMI);
+	var options = config.options;
+    console.log('root = ' + options.root);
+    console.log('baseAMI = ' + options.ami);
     
-    var rootPath = path.resolve(config.root);
-    var baseAMI = config.baseAMI;
+    var rootPath = path.resolve(options.root);
+    var baseAMI = options.ami;
     
     //take the list of scripts and sort and normalize them.
     var scripts = [];

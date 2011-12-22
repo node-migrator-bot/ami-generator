@@ -8,24 +8,20 @@ var fs = require('fs');
 var packagePath = path.resolve(__dirname, '..', 'package.json');
 var packageJson = JSON.parse(fs.readFileSync(packagePath)); 
 
-cli.parse(function(commandName, options, parameters) {
-	//console.log(commandName);
-	//console.log(options);
+cli.parse(function(commandName, config) {
 	switch (commandName) {
 		case 'gen': 
-			options.scripts = parameters;
-			generate(options);
+			generate(config);
 			break;
 		case 'scripts':
-			listScripts(options);
+			listScripts(config);
 			break;
 	}
 });
 
-function validateOptions(options) {
-	options.ami = options.ami || 'ami-bf62a9d6';
+function validateConfig(config) {
+	var options = config.options;
 	options.root = options.root || path.resolve(__dirname, '../scripts');
-	options.scripts = options.scripts || [];
 
 	if (!path.existsSync(options.root)) {
 		console.log();
@@ -33,11 +29,12 @@ function validateOptions(options) {
 		process.exit(1);
 	}
 	
-	return options;
+	return config;
 }
 
-function listScripts(options) {
-	options = validateOptions(options);
+function listScripts(config) {
+	var config = validateConfig(config);
+	var options = config.options;
 	
 	var paths = [];
 	walkPathSync(options.root, '', paths);
@@ -46,21 +43,9 @@ function listScripts(options) {
 	process.exit(1);
 }
 
-function generate(options) {
+function generate(config) {
 	console.log('generating...');
-	options = validateOptions(options);
-
-	if (options.scripts.length == 0) {
-		console.log();
-		console.log('The scripts parameter is required, e.g. amigen gen ubuntu11.10/node-latest.  Use the scripts command to list available scripts.');
-		console.log();
-	}
-
-	var config = {   
-			"root": options.root
-		,   "baseAMI": options.ami
-		,   "scripts": options.scripts
-		};
+	config = validateConfig(config);
 
 	gen.getImageUsingConfig(config, function(err, amiId) {
 		if (err) {

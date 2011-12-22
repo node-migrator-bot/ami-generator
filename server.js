@@ -1,16 +1,11 @@
-var gen = require('./modules/generator/generator.js');
+var rest = require('./modules/perfectapi/restgen.js');
 
-var config = {   
-        "root": "./scripts"
-    ,   "baseAMI": "ami-bf62a9d6"
-    ,   "scripts": ["ubuntu11.10/node-latest/core-js"]
-    };
-    
-gen.getImageUsingConfig(config, function(err, amiId) {
-    if (err) {
-        console.log(err);
-    } else {
-        console.log('ok, done - amiId = ' + amiId);
-    }
+
+rest.parse(function(err, commandName, config, callback) {
+	if (err) return console.log('error: ' + err);
+	
+	console.log('Command called: ' + commandName);
+	console.log('Config is: ' + JSON.stringify(config));
+	
+	callback(null, 'Thanks');
 });
-
