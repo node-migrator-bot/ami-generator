@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var cli = require('../modules/perfectapi/cligen.js');
+var perfectapi = require('../../perfectapi/api.js');  
 var gen = require('../modules/generator/generator.js');
 var path = require('path');
 var fs = require('fs');
@@ -8,7 +8,7 @@ var fs = require('fs');
 var packagePath = path.resolve(__dirname, '..', 'package.json');
 var packageJson = JSON.parse(fs.readFileSync(packagePath)); 
 
-cli.parse(function(commandName, config) {
+perfectapi.commandline(path.resolve(__dirname, '..', 'perfectapi.json'), function(commandName, config) {
 	switch (commandName) {
 		case 'gen': 
 			generate(config);
