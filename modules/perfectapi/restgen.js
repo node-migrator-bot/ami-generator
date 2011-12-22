@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var express = require('express');
+var cfg = require(path.join(__dirname, 'config.js'));
 
 exports.parse = function(callback) {
 	var perfectapiPath = path.resolve(__dirname, '..', '..', 'perfectapi.json');
@@ -34,33 +35,32 @@ function setupListener(app, command, callback) {
 	var part = command.path;
 	
 	app.all(part, function(req, res, next) {
-		if (req.accepts('application/json')) {
-			var config = req.body;
+		if (req.accepts('application/json') && req.header('Content-Type')=='application/json') {
+			//req.body should be a perfectapi-compatible config file, specified in
+			//JSON format.
+			//curl example:
+			//curl -v -H "Content-Type: application/json" -d "{\"scripts\":[\"ubuntu11.10\", \"ubuntu11.10/juju\"]}" -X POST localhost:3000/apis/gen
+			var defaultConfig = cfg.getDefaultConfig(name);
+			var config = cfg.merge(defaultConfig, req.body);
+
 			if (command.environment) {
 				var environment = command.environment;
-				var json = "{"
-				var sep = "";
 				for(var i=0;i<environment.length;i++) {
 					var value = req.header(environment[i].parameter, null);
-					if (!value) value = process.env[environment[i].parameter]; 
-					if (!value) { 
-						var err = 'Expected environment parameter ' + environment[i].parameter
-						res.end(err);
-						return callback(err);
-					}
-					json += sep + '"' + environment[i].parameter + '":"' + value + '"'
-					sep = ","
+					if (value) config.environment[environment[i].parameter] = value;
 				}
-				json += "}";
-				config.environment = JSON.parse(json);  //safer than using eval
 			}
 		
 			//res.end('Accepted request to ' + part);
 			callback(null, name, config, function(err, result) {
-				res.end(result);
+				if (err) {
+					console.log('error: ' + err);
+					res.end(err);
+				} else 
+					res.end(result);
 			});
 		} else {
-			res.end('Only accepting json requests right now (application/json)');
+			res.end('Only accepting json requests right now (Content-Type=application/json)');
 		}
 	});
 }

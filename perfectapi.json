@@ -10,7 +10,7 @@
 			 {"parameter": "AWS_SECRET_ACCESS_KEY", "long":"awssecretkey", "short":"s", "required":"true"}],
 		"parameter": {"name": "scripts", "required":"true", "type":"multi"},
 		"options": 
-			[{"option": "root", "long":"root", "short":"r", "required":"false", "description":"specify the root folder where scripts can be found"},
+			[{"option": "root", "long":"root", "short":"r", "required":"false", "default":"scripts", "description":"specify the root folder where scripts can be found"},
 			 {"option": "ami", "default":"ami-bf62a9d6", "long":"ami", "short":"a", "description":"the AMI name that will form the basis of the new images"},
 			 {"flag": "publish", "long":"publish", "short":"p", "default":"false", "description":"if set, the resulting AMI(s) will be made public"}]
 	},
@@ -24,6 +24,6 @@
 			[{"parameter": "AWS_ACCESS_KEY_ID", "required":"true"},
 			 {"parameter": "AWS_SECRET_ACCESS_KEY", "required":"true"}],
 		"options": 
-			[{"option": "root", "required":"false", "long":"root", "short":"r"}]
+			[{"option": "root", "required":"false", "long":"root", "default":"scripts", "short":"r"}]
 	}]
 }

@@ -67,7 +67,7 @@ exports.getDefaultConfig = function(commandName) {
 	};
 	config.options = options;
 	
-	console.log(JSON.stringify(config));
+	//console.log(JSON.stringify(config));
 	
 	return config;
 }
@@ -75,9 +75,9 @@ exports.getDefaultConfig = function(commandName) {
 //http://stackoverflow.com/questions/7997342/merge-json-objects-without-new-keys
 function merge(defaultConfig, additionalConfig) {
     for( var p in additionalConfig )
-        if( defaultConfig.hasOwnProperty(p) )
-            defaultConfig[p] = typeof additionalConfig[p] === 'object' ? merge(defaultConfig[p], additionalConfig[p]) : additionalConfig[p];
-
+        if( defaultConfig.hasOwnProperty(p) ) 
+            defaultConfig[p] = (typeof additionalConfig[p] === 'object' && !(p.length)) ? merge(defaultConfig[p], additionalConfig[p]) : additionalConfig[p];
+		
     return defaultConfig;
 }
 

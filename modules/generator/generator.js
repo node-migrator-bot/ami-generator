@@ -14,7 +14,7 @@ exports.getImageUsingConfig = function(config, callback) {
 			"AWS_SECRET_ACCESS_KEY":"ajdshkh234hjkhask"
 		};
 		"options": {
-			"root": "ubuntu11.10"
+			"root": "scripts"
 		,   "ami": "ami-a562a9cc"
 		}
     ,   "scripts": ["Node0.4.12", "Node0.4.12/cloud9", "NginxProxy"]
@@ -68,7 +68,7 @@ exports.getImageUsingConfig = function(config, callback) {
 	for(var i=0;i<scriptsWithoutDups.length;i++) {
 		var userData = path.resolve(rootPath, scriptsWithoutDups[i], 'user-data.sh');
 		if (!path.existsSync(userData)) {
-			callback('Script ' + scriptsWithoutDups[i] + ' does not exist.');
+			callback('Script ' + scriptsWithoutDups[i] + ' does not exist at ' + rootPath);
 			return;
 		}
 	}
