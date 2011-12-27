@@ -12,3 +12,5 @@ export HOME="/home/root"
 echo "The user-data script has basename `basename $0`, dirname `dirname $0`"
 echo "The present working directory is `pwd`"
 
+# helps with cache-related issues with yum
+yum clean all

@@ -1,5 +1,5 @@
 #ensure distro up-to-date
-yum update -y
+yum upgrade -y
 
 # setup daily automatic security updates
 yum install -y yum-cron
