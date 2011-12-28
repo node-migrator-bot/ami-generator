@@ -38,6 +38,7 @@ exports.call = call;
 exports.waitForInstanceState = function(config, instanceId, requiredState, frequencyMilliseconds, callback) {
 	//valid instance states are pending | running | shutting-down | terminated | stopping | stopped,
 	//BUT you can only wait for running | terminated | stopped, because others may pass too quickly
+	var done = false;
 	var intervalId = setInterval(function() {
 		call(config, "DescribeInstances",  {
 			"Filter.1.Name": "instance-id", 
@@ -50,7 +51,10 @@ exports.waitForInstanceState = function(config, instanceId, requiredState, frequ
 			} else {
 				//done waiting, it is ready
 				clearInterval(intervalId);
-				callback(null, response);
+				if (!done) {
+					done = true;
+					callback(null, response);
+				}
 			}
 		});
 	}, frequencyMilliseconds);
@@ -59,6 +63,7 @@ exports.waitForInstanceState = function(config, instanceId, requiredState, frequ
 exports.waitForImageState = function(config, imageId, requiredState, frequencyMilliseconds, callback) {
 	//valid image states are available | pending | failed,
 	//BUT you can only wait for available | failed, because pending may pass too quickly 
+	var done = false;
 	var intervalId = setInterval(function() {
 		call(config, "DescribeImages",  {
 			"Filter.1.Name": "image-id", 
@@ -71,7 +76,10 @@ exports.waitForImageState = function(config, imageId, requiredState, frequencyMi
 			} else {
 				//done waiting, it is ready
 				clearInterval(intervalId);
-				callback(null, response);
+				if (!done) {
+					done = true;
+					callback(null, response);
+				}
 			}
 		});
 	}, frequencyMilliseconds);

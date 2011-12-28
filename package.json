@@ -8,10 +8,11 @@
     ,"main": "modules/generator/generator.js"
 	,"bin": "./bin/amigen.js"
 ,   "engines": {
-        "node" : ">=0.4.12"
+        "node" : ">=0.6.5"
     }
 ,   "dependencies":    {   
-        "ec2": ">=0.0.8"
+        "ec2": ">=0.0.8",
+		"perfectapi": ">=0.0.2"
     }
 ,   "repository" :
     {
