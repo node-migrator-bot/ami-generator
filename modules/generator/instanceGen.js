@@ -24,7 +24,9 @@ exports.generateInstance = function(userData, baseAMI, uniqueName, callback) {
 				"Tag.1.Key": "generator",
 				"Tag.1.Value": "https://github.com/perfectapi/ami-generator",
 				"Tag.2.Key": "generatedOnOS",
-				"Tag.2.Value": process.platform
+				"Tag.2.Value": process.platform,
+				"Tag.3.Key": "Name",
+				"Tag.3.Value": "Temporary instance"
 			}, function(response) {
 				//tags done
 				console.log('Tagged instance ' + instanceId);

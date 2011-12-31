@@ -265,6 +265,37 @@ getPostUserData = function(rootPath, script, callback) {
     });
 }
 
+getInstallScript = function(rootPath, script, callback) {
+    var allPaths = getAllPathsToRoot(rootPath, script);
+
+    var newFile = path.join(findTempDirectory(), 'install.tmp');    
+    var ws = fs.createWriteStream(newFile);
+    while(allPaths.length > 0) {
+        var currentPath = allPaths.pop();  //take from end, which is final path
+        
+        var currentFile = path.resolve(currentPath, 'install.sh');
+        if (path.existsSync(currentFile)) {
+            var b = fs.readFileSync(currentFile, 'utf8');
+			b = b.replace(/\r\n/g, '\n');
+            ws.write(b);
+            ws.write("\n");
+        }
+    }
+    ws.end();
+    ws.destroySoon();
+    
+    ws.on('close', function() {
+        var installData = fs.readFileSync(newFile);
+        console.log('install generated, length = ' + installData.length);
+    
+        callback(null, installData);
+    });    
+    
+    ws.on('error', function(err) {
+        callback(err);
+    });
+}
+
 getUserData = function(rootPath, script, callback) {
     var myPath = path.resolve(rootPath, script);
     
@@ -285,13 +316,24 @@ getUserData = function(rootPath, script, callback) {
             ws.write("\n");
         }
         
-        getPostUserData(rootPath, script, function(err, data) {
-            if (err) { callback(err); return; }
-            
-            ws.write(data);
-            ws.end();
-            ws.destroySoon();
-        });
+		getInstallScript(rootPath, script, function(err, data) {
+			if (err) { callback(err); return; }
+			
+			//install script needs to be escaped and output to a file
+			ws.write('cat > /home/$MY_USER/install.sh <<EOFINSTALL\n');
+			ws.write(data.toString('utf8').replace(/\\/g, '\\\\').replace(/\$/g, '\\\$'));   //escape variables (and escapes); we only want to evaluate them when script is run
+			ws.write('EOFINSTALL\n');
+			ws.write('chown $MY_USER /home/$MY_USER/install.sh \n');
+			ws.write('chmod +x /home/$MY_USER/install.sh \n');
+			
+			getPostUserData(rootPath, script, function(err, data) {
+				if (err) { callback(err); return; }
+				
+				ws.write(data);
+				ws.end();
+				ws.destroySoon();
+			});
+		});
     });
     
     ws.on('close', function() {
