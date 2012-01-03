@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-var perfectapi = require('perfectapi');  
+//var perfectapi = require('perfectapi');    
+var perfectapi = require('../../perfectapi/api.js');  
 var gen = require('../modules/generator/generator.js');
 var path = require('path');
 var fs = require('fs');
@@ -47,8 +48,10 @@ parser.on("scripts", function(config, callback) {
 	});
 });
 
+//expose our API in normal "exports" fashion.  2 ways, either through api.xyz(config, callback): 
 var api = parser.parse(configPath);
 exports.api = api;
+//...or directly by xyz(config, callback):
 for( var myFunc in api ) {
 	exports[myFunc] = api[myFunc];
 }

@@ -13,7 +13,7 @@ Wordpress
 
 To install Wordpress, be sure to run the install.sh script found in this folder.  Once completed, please browse to the public DNS name for your instance.
 
-http://yourdomain.com/wp-admin/install.php
+http://yourdomain.com/
 
 There is some minimal setup work required (at that site) before Wordpress is usable.
 

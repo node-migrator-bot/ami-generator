@@ -8,7 +8,7 @@ service apache2 restart
 
 #php5
 apt-get install -y php5
-apt-get install -y libapache2-mod-php5
+apt-get install -y libapache2-mod-php5 php5-curl
 service apache2 restart
 
 #mysql
