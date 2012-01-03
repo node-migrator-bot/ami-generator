@@ -1,11 +1,8 @@
 var perfectapi = require('../../perfectapi/api.js');
 
-var gen = perfectapi.proxy('http://localhost:3000/apis');
+perfectapi.proxy('http://localhost:3000/apis', function(err, api) {
 
-console.log(JSON.stringify(gen));
-
-setTimeout(function() {
-	console.log(JSON.stringify(gen));
+	console.log(JSON.stringify(api));
 	
 	var config = {   
 		"root": "./node_modules/amigen/scripts"
@@ -13,18 +10,12 @@ setTimeout(function() {
 	,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/nodejs-latest"]
 	};
 
-	gen.getImageUsingConfig(config, function(err, amiId) {
+	api.scripts(config, function(err, result) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log('ok, done - amiId = ' + amiId);
+			console.log('ok, done - result = ' + JSON.stringify(result));
 		}
 	});
-	
-}, 3000);
-	
+});
 
-/*
-
-
-*/
