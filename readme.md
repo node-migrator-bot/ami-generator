@@ -2,15 +2,12 @@ ami-generator
 ====
 Generate Amazon AMI images easily.  This repository contains a collection of scripts that initialize your image to your specification.
 
-WIP
----
-This project is still a work-in-progress.  YMMV, especially on the included scripts.
 
 Terminology
 -----------
 * Image - an Amazon image, identified by an AMI id, e.g. `ami-af13d9c6`
 * Instance - a running machine instance created from an image.  Can be run in various sizes (combinations of CPU/memory needs), e.g. "t1.micro" (the smallest)
-* "EBS" Image vs. "Instance Store" Image - This application works exclusively with "EBS" Images.
+
 
 Installing
 ----
@@ -38,7 +35,7 @@ The command-line app is named `amigen`.  It works from both Windows and Linux.  
 	
 will output command-line help.  Typing:
 
-	$ amigen 
+	$ amigen scripts
 
 will output a list of available scripts.
 
@@ -47,7 +44,7 @@ Usage - as library
 Library usage goes something like this:
 
 ```javascript
-var gen = require('amigen');
+var amigen = require('amigen');
 
 var config = {   
         "root": "./node_modules/amigen/scripts"
@@ -55,11 +52,11 @@ var config = {
     ,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/nodejs-latest"]
     };
     
-gen.getImageUsingConfig(config, function(err, amiId) {
+amigen.gen(config, function(err, result) {
     if (err) {
         console.log(err);
     } else {
-        console.log('ok, done - amiId = ' + amiId);
+        console.log('ok, done - amiId = ' + result.ami);
     }
 });
 ```
