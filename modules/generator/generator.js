@@ -123,7 +123,7 @@ getImage = function(
             var client = ec2.createClient(
                 { key:      config.environment.AWS_ACCESS_KEY_ID
                 , secret:   config.environment.AWS_SECRET_ACCESS_KEY
-				, region:   config.options.region
+				, endpoint:   config.options.region
             });
             
             console.log('Unique name of image should be ' + uniqueName);
