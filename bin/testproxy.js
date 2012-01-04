@@ -1,15 +1,17 @@
+var config = {   
+	"root": "./node_modules/amigen/scripts"
+,   "baseAMI": "ami-a562a9cc"
+,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/nodejs-latest"]
+};
+
+
+/* 
+ Call via proxy
+*/
+
 var perfectapi = require('../../perfectapi/api.js');
 
 perfectapi.proxy('http://localhost:3000/apis', function(err, amigen) {
-
-	//console.log(JSON.stringify(amigen));
-	
-	var config = {   
-		"root": "./node_modules/amigen/scripts"
-	,   "baseAMI": "ami-a562a9cc"
-	,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/nodejs-latest"]
-	};
-
 	amigen.scripts(config, function(err, result) {
 		if (err) {
 			console.log(err);
@@ -27,13 +29,11 @@ perfectapi.proxy('http://localhost:3000/apis', function(err, amigen) {
 	});
 });
 
-var amigen = require('./amigen.js');
+/* 
+ Call it directly in Node.js
+*/
 
-var config = {   
-	"root": "./node_modules/amigen/scripts"
-,   "baseAMI": "ami-a562a9cc"
-,   "scripts": ["ubuntu11.10/AWS_API_tools", "ubuntu11.10/nodejs-latest"]
-};
+var amigen = require('./amigen.js');
 
 amigen.scripts(config, function(err, result) {
 	if (err) {

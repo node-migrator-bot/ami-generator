@@ -48,13 +48,8 @@ parser.on("scripts", function(config, callback) {
 	});
 });
 
-//expose our API in normal "exports" fashion.  2 ways, either through api.xyz(config, callback): 
-var api = parser.parse(configPath);
-exports.api = api;
-//...or directly by xyz(config, callback):
-for( var myFunc in api ) {
-	exports[myFunc] = api[myFunc];
-}
+//expose our API
+module.exports = parser.parse(configPath);
 
 function validateConfig(config, callback) {
 	var options = config.options;
