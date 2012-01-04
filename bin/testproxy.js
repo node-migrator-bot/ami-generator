@@ -9,7 +9,8 @@ var config = {
  Call via proxy
 */
 
-var perfectapi = require('../../perfectapi/api.js');
+//var perfectapi = require('../../perfectapi/api.js');
+var perfectapi = require('perfectapi');
 
 perfectapi.proxy('http://localhost:3000/apis', function(err, amigen) {
 	amigen.scripts(config, function(err, result) {
