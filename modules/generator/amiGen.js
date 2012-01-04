@@ -1,4 +1,4 @@
-var ec2 = require(__dirname + "/ec2proxy.js");
+var ec2 = require("./ec2proxy.js");
 
 exports.generateAMI = function(instanceId, uniqueName, lineage, config, callback) {
 

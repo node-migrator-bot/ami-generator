@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-var perfectapi = require('perfectapi');    
-//var perfectapi = require('../../perfectapi/api.js');  
+//var perfectapi = require('perfectapi');    
+var perfectapi = require('../../perfectapi/api.js');  
 var gen = require('../modules/generator/generator.js');
+var regions = require('../modules/ec2info/regions.js');
 var path = require('path');
 var fs = require('fs');
 
@@ -10,7 +11,7 @@ var configPath = path.resolve(__dirname, '..', 'perfectapi.json');
 var parser = new perfectapi.Parser();
 
 parser.on("gen", function(config, callback) {
-	config = validateConfig(config, function(err, config) {
+	config = validateRootpath(config, function(err, config) {
 		if (err) {
 			callback(err, null);
 		} else {
@@ -32,7 +33,7 @@ parser.on("gen", function(config, callback) {
 });
  
 parser.on("scripts", function(config, callback) {
-	config = validateConfig(config, function(err, config) {
+	config = validateRootpath(config, function(err, config) {
 		if (err) {
 			callback(err, null);
 		} else {
@@ -48,10 +49,14 @@ parser.on("scripts", function(config, callback) {
 	});
 });
 
+parser.on("regions", function(config, callback) {
+	regions(config, callback);
+});
+
 //expose our API
 module.exports = parser.parse(configPath);
 
-function validateConfig(config, callback) {
+function validateRootpath(config, callback) {
 	var options = config.options;
 	options.root = options.root || path.resolve(__dirname, '../scripts');
 

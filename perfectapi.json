@@ -25,6 +25,14 @@
 				[{"option": "root", "required":"false", "long":"root", "default":"scripts", "short":"r"}],
 			"returns": 
 				[{"name":"scripts", "type":"list", "description":"List of scripts relative to the root path"} ]
+		},
+		{
+			"name": "regions",
+			"synopsis": "Lists available Amazon regions",
+			"description": "Lists the available regions",
+			"verb": "GET",
+			"returns": 
+				[{"name":"regions", "type":"list", "description":"List of amazon regions"} ]
 		}
 	], 
 	"path": "apis",
