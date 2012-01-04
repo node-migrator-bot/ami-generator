@@ -1,6 +1,10 @@
 ami-generator
 ====
-Generate Amazon AMI images easily.  This repository contains a collection of scripts that initialize your image to your specification.
+Generate Amazon AMI images easily.  This repository contains a collection of scripts that initialize your image to your specification.  The scripts are all contained in this repository.
+
+Helping out
+-----------
+If you would like to share your own scripts, or modify existing ones, please submit a Pull Request, or else email the team at amigen@perfectapi.com.  Currently, all scripts have to be bash scripts.
 
 
 Terminology
@@ -68,6 +72,12 @@ to make use of the included software.
 
 It is recommended that you read this file by typing:
 
-   $ cat readme.txt
+    $ cat readme.txt
   
 (when you run an instance based off of the image).
+
+Install.sh
+----------
+Depending on the scripts run, the generated image may have an install.sh script in the home folder.  Run this to complete the install:
+
+    $ sudo ./install.sh

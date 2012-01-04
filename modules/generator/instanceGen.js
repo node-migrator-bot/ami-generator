@@ -1,10 +1,11 @@
 var ec2 = require(__dirname + "/ec2proxy.js");
 
-exports.generateInstance = function(userData, baseAMI, uniqueName, callback) {
+exports.generateInstance = function(userData, baseAMI, uniqueName, config, callback) {
    
-    var ec2config = {
-		"AWS_ACCESS_KEY_ID": process.env["AWS_ACCESS_KEY_ID"],
-		"AWS_SECRET_ACCESS_KEY": process.env["AWS_SECRET_ACCESS_KEY"] };
+   var ec2config = {
+		"AWS_ACCESS_KEY_ID": config.environment.AWS_ACCESS_KEY_ID,
+		"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
+		"endpoint": config.options.region};
             	
     // Call the "RunInstances" action to create a new EC2 instance. The Amazon Query
     // API call will return immediately, but the instance will take a while to initialize.

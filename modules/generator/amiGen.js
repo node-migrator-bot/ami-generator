@@ -1,10 +1,11 @@
 var ec2 = require(__dirname + "/ec2proxy.js");
 
-exports.generateAMI = function(instanceId, uniqueName, lineage, callback) {
+exports.generateAMI = function(instanceId, uniqueName, lineage, config, callback) {
 
     var ec2config = {
-		"AWS_ACCESS_KEY_ID": process.env["AWS_ACCESS_KEY_ID"],
-		"AWS_SECRET_ACCESS_KEY": process.env["AWS_SECRET_ACCESS_KEY"] };
+		"AWS_ACCESS_KEY_ID": config.environment.AWS_ACCESS_KEY_ID,
+		"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
+		"endpoint": config.options.region};
 	
 	var newImageId;
 	var nameLineage = GetNormalizedLineage(lineage, 2).substring(0,255);  //trim as needed
@@ -24,7 +25,8 @@ exports.generateAMI = function(instanceId, uniqueName, lineage, callback) {
 		console.log('requested AMI, id will be ' + newImageId + '...waiting...');
 
 		//need to make sure the image is ready before we continue
-		ec2.waitForImageState(ec2config, newImageId, 'available', 1000, function(result) {
+		//ec2.waitForImageState(ec2config, newImageId, 'available', 5000, function(result) {
+		ec2.waitForImageExist(ec2config, newImageId, 2000, function(result) {
 		
 			ec2.call(ec2config, "CreateTags", {
 				"ResourceId.1": newImageId,
@@ -46,8 +48,10 @@ exports.generateAMI = function(instanceId, uniqueName, lineage, callback) {
 				console.log('terminated instance ' + instanceId);
 			});
 			
-			console.log("Created a new AMI with id: " + newImageId);
-			callback(null, newImageId);
+			ec2.waitForImageState(ec2config, newImageId, 'available', 5000, function(result) {
+				console.log("Created a new AMI with id: " + newImageId);
+				callback(null, newImageId);
+			});
 		});
 	});
 };

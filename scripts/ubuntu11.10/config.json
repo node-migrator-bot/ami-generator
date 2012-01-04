@@ -1,14 +1,13 @@
 {
-    "name": "ubuntu",
-    "description": "ubuntu stable",
-    "parameters" : {
-        "base" : "Base AMI image"
-    },
-    "base-options" : {
-        "ami-a7f539ce" : "us-east 32-bit Ubuntu 11.10 Oneiric EBS boot",
-		"ami-bbf539d2" : "us-east 64-bit Ubuntu 11.10 Oneiric EBS boot"
-    },
-	"param-out" : {
-		"distro": "ubuntu"
-	}
+  "Mappings" : {
+    "AWSRegionArch2AMI" : {
+      "us-east-1"      : { "32" : "ami-a562a9cc", "64" : "ami-bf62a9d6" },
+      "us-west-1"      : { "32" : "ami-c9a1fe8c", "64" : "ami-cba1fe8e" },
+      "us-west-2"      : { "32" : "ami-ea9a17da", "64" : "ami-ec9a17dc" },
+      "eu-west-1"      : { "32" : "ami-11f0cc65", "64" : "ami-1df0cc69" },
+      "sa-east-1"      : { "32" : "ami-be39e6a3", "64" : "ami-ba39e6a7" },
+      "ap-southeast-1" : { "32" : "ami-0a327758", "64" : "ami-0832775a" },
+      "ap-northeast-1" : { "32" : "ami-84902785", "64" : "ami-88902789" }
+    }
+  }   
 }

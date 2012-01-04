@@ -32,11 +32,7 @@ exports.getImageUsingConfig = function(config, callback) {
     };    
     
 	var options = config.options;
-    console.log('root = ' + options.root);
-    console.log('baseAMI = ' + options.ami);
-    
     var rootPath = path.resolve(options.root);
-    var baseAMI = options.ami;
     
     //take the list of scripts and sort and normalize them.
     var scripts = [];
@@ -72,18 +68,38 @@ exports.getImageUsingConfig = function(config, callback) {
 			return;
 		}
 	}
-			
+	
+	if (!options.ami) {
+		//need to lookup an AMI
+		var configFilePath = path.resolve(rootPath, scriptsWithoutDups[0], 'config.json');
+		if (!path.existsSync(configFilePath)) return callback('Cannot find config containing AMI ids at ' + configFilePath);
+		
+		var amiConfig = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
+		//console.log(JSON.stringify(amiConfig.Mappings.AWSRegionArch2AMI["us-east-1"]));
+		var regionConfig = amiConfig.Mappings.AWSRegionArch2AMI[options.region];
+		if (!regionConfig) return callback('Region ' + options.region + ' does not have a base AMI specified.  Please use --ami option to specify an AMI directly');
+		var bitNess = (options.bit32) ? "32" : "64";
+		var ami = regionConfig[bitNess];
+		if (!ami) return callback('Could not find a base AMI for ' + bitNess + 'bit in region ' + config.region + '.  Please use --ami option to specify an AMI directly');
+		
+		options.ami = ami;
+	}
+
+    var baseAMI = options.ami;
+    console.log('root = ' + options.root);
+    console.log('baseAMI = ' + options.ami);
+	
     //now we have a list of scripts that can be executed in order    
     var myScript = scriptsWithoutDups.shift();
 	var lineage = 'amigen,' + baseAMI + ',' + myScript;
-    getImage(rootPath, myScript, lineage, baseAMI, recurse = function(err, newAMI) {
+    getImage(rootPath, myScript, lineage, baseAMI, config, recurse = function(err, newAMI) {
         if (err) {callback(err); return;}
         
         if (scriptsWithoutDups.length > 0) {
             //go to next script
             myScript = scriptsWithoutDups.shift();
 			lineage = lineage + ',' + myScript;
-            getImage(rootPath, myScript, lineage, newAMI, recurse);  //handy recursion trick, *evil laugh*
+            getImage(rootPath, myScript, lineage, newAMI, config, recurse);  //handy recursion trick, *evil laugh*
         } else {
             callback(null, newAMI);
         }
@@ -95,6 +111,7 @@ getImage = function(
     script,       //partial path to the script location we want to use
 	lineage,	  //lineage of this image
     baseAMI,      //AMI to use as a basis for the new AMI image
+	config, 	  //full config provided via API
     callback) {
     
     console.log('getting image from ' + path.join(rootPath, script) + ' using base ' + baseAMI);
@@ -104,8 +121,9 @@ getImage = function(
             callback(err);
         } else {
             var client = ec2.createClient(
-                { key:      process.env["AWS_ACCESS_KEY_ID"]
-                , secret:   process.env["AWS_SECRET_ACCESS_KEY"]
+                { key:      config.environment.AWS_ACCESS_KEY_ID
+                , secret:   config.environment.AWS_SECRET_ACCESS_KEY
+				, region:   config.options.region
             });
             
             console.log('Unique name of image should be ' + uniqueName);
@@ -122,11 +140,11 @@ getImage = function(
                 } else {
                     //does notexist yet
                     console.log('no matching image yet - will generate now...could take a while...');
-                    instanceGen.generateInstance(userData64, baseAMI, uniqueName, function(err, instanceId) {
+                    instanceGen.generateInstance(userData64, baseAMI, uniqueName, config, function(err, instanceId) {
                         if (err) {
                             callback(err);
                         } else {
-                            amiGen.generateAMI(instanceId, uniqueName, lineage, function(err, amiId) {
+                            amiGen.generateAMI(instanceId, uniqueName, lineage, config, function(err, amiId) {
                                 if (err) {
                                     callback(err, amiId);
                                 } else {

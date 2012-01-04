@@ -9,6 +9,8 @@ call = function(config, command, parameters, callback) {
 		, endpoint: config.endpoint || "us-east-1"
     });
 	
+	//console.log('using endpoint ' + config.endpoint);
+	
 	client.call(command, parameters, function(response) {
 		callback(null, response);
 	});
@@ -75,6 +77,28 @@ exports.waitForImageState = function(config, imageId, requiredState, frequencyMi
 				//noop, still waiting
 			} else {
 				//done waiting, it is ready
+				clearInterval(intervalId);
+				if (!done) {
+					done = true;
+					callback(null, response);
+				}
+			}
+		});
+	}, frequencyMilliseconds);
+};
+
+exports.waitForImageExist = function(config, imageId, frequencyMilliseconds, callback) {
+	//basically same as wait for image state = pending
+	var done = false;
+	var intervalId = setInterval(function() {
+		call(config, "DescribeImages",  {
+			"Filter.1.Name": "image-id", 
+			"Filter.1.Value.1": imageId}, function(err, response) {
+		
+			if (response.imagesSet.length==0) {
+				//noop, still waiting
+			} else {
+				//done waiting, image exists
 				clearInterval(intervalId);
 				if (!done) {
 					done = true;

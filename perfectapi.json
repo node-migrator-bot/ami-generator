@@ -8,7 +8,10 @@
 			"parameter": {"name": "scripts", "required":"true", "type":"multi"},
 			"options": 
 				[{"option": "root", "long":"root", "short":"r", "required":"false", "default":"scripts", "description":"specify the root folder where scripts can be found"},
-				 {"option": "ami", "default":"ami-bf62a9d6", "long":"ami", "short":"a", "description":"the AMI name that will form the basis of the new images"},
+				 {"option": "ami", "required":"false", "long":"ami", "short":"a", "description":"the AMI name that will form the basis of the new images"},
+				 {"option": "region", "default":"us-east-1", "long":"region", "short":"e", "description":"The amazon region in which to create the image"},
+				 {"flag": "bit32", "default":"false", "long":"32", "short":"3", "description":"if set, the resulting AMI will be a 32 bit image.  Ignored if a specific base AMI is specified (--ami)."},
+				 {"flag": "bit64", "default":"true", "long":"64", "short":"6", "description":"if set, the resulting AMI will be a 64 bit image.  Ignored if a specific base AMI is specified (--ami)."},
 				 {"flag": "publish", "long":"publish", "short":"p", "default":"false", "description":"if set, the resulting AMI(s) will be made public"}],
 			"returns": 
 				[{"name":"ami", "description":"Amazon AMI Image Id, e.g. ami-bf62a9d6"} ]
