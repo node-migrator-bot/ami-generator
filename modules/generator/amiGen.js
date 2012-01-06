@@ -2,7 +2,7 @@ var ec2 = require("./ec2proxy.js");
 
 exports.generateAMI = function(instanceId, uniqueName, lineage, config, callback) {
 
-    var ec2config = {
+  var ec2config = {
 		"AWS_ACCESS_KEY_ID": config.environment.AWS_ACCESS_KEY_ID,
 		"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
 		"endpoint": config.options.region};
@@ -55,7 +55,6 @@ exports.generateAMI = function(instanceId, uniqueName, lineage, config, callback
 		});
 	});
 };
-
 
 function GetNormalizedLineage(lineage, start) {
 	start = start || 0;

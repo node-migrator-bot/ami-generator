@@ -14,7 +14,9 @@
 				 {"flag": "bit64", "default":"true", "long":"64", "short":"6", "description":"if set, the resulting AMI will be a 64 bit image.  Ignored if a specific base AMI is specified (--ami)."},
 				 {"flag": "publish", "long":"publish", "short":"p", "default":"false", "description":"if set, the resulting AMI(s) will be made public"}],
 			"returns": 
-				[{"name":"ami", "description":"Amazon AMI Image Id, e.g. ami-bf62a9d6"} ]
+				[{"name":"ami", "description":"Amazon AMI Image Id, e.g. ami-bf62a9d6"},
+				 {"name":"region", "description":"Amazon AWS region in which the ami can be found"}
+				]
 		},
 		{
 			"name": "scripts",

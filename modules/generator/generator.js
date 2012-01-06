@@ -1,4 +1,4 @@
-var ec2 = require("ec2");
+var ec2 = require("./ec2proxy.js");
 var fs = require("fs");
 var path = require("path");
 var crypto = require("crypto");
@@ -85,87 +85,98 @@ exports.getImageUsingConfig = function(config, callback) {
 		options.ami = ami;
 	}
 
-    var baseAMI = options.ami;
-    console.log('root = ' + options.root);
-    console.log('baseAMI = ' + options.ami);
-	
-    //now we have a list of scripts that can be executed in order    
-    var myScript = scriptsWithoutDups.shift();
+	var baseAMI = options.ami;
+	console.log('root = ' + options.root);
+	console.log('baseAMI = ' + options.ami);
+
+	//now we have a list of scripts that can be executed in order    
+	var myScript = scriptsWithoutDups.shift();
 	var lineage = 'amigen,' + baseAMI + ',' + myScript;
-    getImage(rootPath, myScript, lineage, baseAMI, config, recurse = function(err, newAMI) {
-        if (err) {callback(err); return;}
-        
-        if (scriptsWithoutDups.length > 0) {
-            //go to next script
-            myScript = scriptsWithoutDups.shift();
-			lineage = lineage + ',' + myScript;
-            getImage(rootPath, myScript, lineage, newAMI, config, recurse);  //handy recursion trick, *evil laugh*
-        } else {
-            callback(null, newAMI);
-        }
-    });
+	getImage(rootPath, myScript, lineage, baseAMI, config, recurse = function(err, newAMI) {
+			if (err) {callback(err); return;}
+			
+			if (scriptsWithoutDups.length > 0) {
+					//go to next script
+					myScript = scriptsWithoutDups.shift();
+					lineage = lineage + ',' + myScript;
+					getImage(rootPath, myScript, lineage, newAMI, config, recurse);  //handy recursion trick, *evil laugh*
+			} else {
+					callback(null, newAMI);
+			}
+	});
 };
 
 getImage = function(
-    rootPath,     //lowest path with scripts
-    script,       //partial path to the script location we want to use
+	rootPath,     //lowest path with scripts
+	script,       //partial path to the script location we want to use
 	lineage,	  //lineage of this image
-    baseAMI,      //AMI to use as a basis for the new AMI image
+	baseAMI,      //AMI to use as a basis for the new AMI image
 	config, 	  //full config provided via API
-    callback) {
+	callback) {
     
-    console.log('getting image from ' + path.join(rootPath, script) + ' using base ' + baseAMI);
-    
-    getUserDataHash(rootPath, script, baseAMI, function(err, uniqueName, userData64) {
-        if (err) {
-            callback(err);
-        } else {
-            var client = ec2.createClient(
-                { key:      config.environment.AWS_ACCESS_KEY_ID
-                , secret:   config.environment.AWS_SECRET_ACCESS_KEY
-				, endpoint:   config.options.region
-            });
-            
-            console.log('Unique name of image should be ' + uniqueName);
-            
-            //see if we can find the image...
-            client.call("DescribeImages", {
-                "Filter.1.Name": "tag:uniqueName",
-                "Filter.1.Value.1": uniqueName
-            }, function(response) {
-                var imageSet = response.imagesSet;
-                if (imageSet.length > 0) {
-                    console.log('found matching image ' + imageSet[0].imageId);
-                    callback(null, imageSet[0].imageId);
-                } else {
-                    //does notexist yet
-                    console.log('no matching image yet - will generate now...could take a while...');
-                    instanceGen.generateInstance(userData64, baseAMI, uniqueName, config, function(err, instanceId) {
-                        if (err) {
-                            callback(err);
-                        } else {
-                            amiGen.generateAMI(instanceId, uniqueName, lineage, config, function(err, amiId) {
-                                if (err) {
-                                    callback(err, amiId);
-                                } else {
-                                    //console.log('Created new amiId = ' + amiId);
-                                    callback(null, amiId);
-                                }
-                            });
-                        }
-                    });
-                 }
-            });
+	console.log('getting image from ' + path.join(rootPath, script) + ' using base ' + baseAMI);
+	
+	getUserDataHash(rootPath, script, baseAMI, function(err, uniqueName, userData64) {
+		if (err) {
+				callback(err);
+		} else {
+		
+			var ec2config = {
+				"AWS_ACCESS_KEY_ID": config.environment.AWS_ACCESS_KEY_ID,
+				"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
+				"endpoint": config.options.region};
 			
-			client.on("error", function (err) {
-				callback('error finding image - ' + err);
+			console.log('Unique name of image should be ' + uniqueName);
+					
+			//see if we can find the image...
+			ec2.call(ec2config, "DescribeImages", {
+				"Filter.1.Name": "tag:uniqueName",
+				"Filter.1.Value.1": uniqueName
+			}, function(err, response) {
+				var imageSet = response.imagesSet;
+				if (imageSet.length > 0) {
+					console.log('found matching image ' + imageSet[0].imageId);
+					if (config.options.publish)
+						publishAmi(ec2config, imageSet[0].imageId);
+						
+					callback(null, imageSet[0].imageId);
+				} else {
+					//does notexist yet
+					console.log('no matching image yet - will generate now...could take a while...');
+					instanceGen.generateInstance(userData64, baseAMI, uniqueName, config, function(err, instanceId) {
+						if (err) {
+							callback(err);
+						} else {
+							amiGen.generateAMI(instanceId, uniqueName, lineage, config, function(err, amiId) {
+								if (err) {
+									callback(err, amiId);
+								} else {
+									if (config.options.publish)
+										publishAmi(ec2config, amiId);
+										
+									callback(null, amiId);
+								}
+							});
+						}
+					});
+				}
 			});
-			
-            // Run the transaction described above.
-            client.execute();
-        }
-    });
+		}
+	});
 };
+
+function publishAmi(ec2config, amiId, callback) {
+	ec2.call(ec2config, "ModifyImageAttribute", {
+		"ImageId": amiId,
+		"LaunchPermission.Add.1.Group": "all"
+	}, function(err, response) {
+		if (err) return callback(err);
+		
+		console.log('AMI ' + amiId + ' has been published');
+		
+		if (callback) callback();
+	});
+}
 
 function formatWordKey(buf) {
 	var key = "";  //buf.toString('hex');

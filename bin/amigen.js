@@ -23,7 +23,8 @@ parser.on("gen", function(config, callback) {
 				} else {
 					var result = {};
 					result.ami = amiId;
-					console.log('ok, done - amiId = ' + amiId);
+					result.region = config.options.region;
+					console.log('ok, done - amiId = ' + amiId + ' in region ' + result.region);
 					
 					callback(null, result);
 				}
@@ -77,8 +78,10 @@ function walkPathSync(root, currentPath, results) {
 		
 		if (isDir) {
 			var result = path.join(currentPath, files[i])
-			results.push(result);
-			walkPathSync(root, result, results);
+			if (path.existsSync(path.resolve(currentFileResolved, 'user-data.sh'))) {
+				results.push(result);
+				walkPathSync(root, result, results);
+			}
 		}
 	}
 }
