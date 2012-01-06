@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-//var perfectapi = require('perfectapi');    
-var perfectapi = require('../../perfectapi/api.js');  
+var perfectapi = require('perfectapi');    
+//var perfectapi = require('../../perfectapi/api.js');  
 var gen = require('../modules/generator/generator.js');
 var regions = require('../modules/ec2info/regions.js');
 var path = require('path');
