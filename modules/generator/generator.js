@@ -133,8 +133,13 @@ getImage = function(
 				"Filter.1.Name": "tag:uniqueName",
 				"Filter.1.Value.1": uniqueName
 			}, function(err, response) {
-				var imageSet = response.imagesSet;
-				if (imageSet.length > 0) {
+				
+				if (err) return callback(err);
+				
+				if (response.imagesSet 
+				&& response.imagesSet.length > 0) {
+				
+					var imageSet = response.imagesSet;
 					console.log('found matching image ' + imageSet[0].imageId);
 					if (config.options.publish)
 						publishAmi(ec2config, imageSet[0].imageId);

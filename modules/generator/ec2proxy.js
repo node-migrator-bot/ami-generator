@@ -48,7 +48,28 @@ exports.waitForInstanceState = function(config, instanceId, requiredState, frequ
 			"Filter.2.Name": "instance-state-name",
 			"Filter.2.Value": requiredState}, function(err, response) {
 		
-			if (response.reservationSet.length==0) {
+			if (!(response.reservationSet) || response.reservationSet.length==0) {
+				//noop, still waiting
+			} else {
+				//done waiting, it is ready
+				clearInterval(intervalId);
+				if (!done) {
+					done = true;
+					callback(null, response);
+				}
+			}
+		});
+	}, frequencyMilliseconds);
+};
+
+exports.waitForInstanceExists = function(config, instanceId, frequencyMilliseconds, callback) {
+	var done = false;
+	var intervalId = setInterval(function() {
+		call(config, "DescribeInstances",  {
+			"Filter.1.Name": "instance-id", 
+			"Filter.1.Value.1": instanceId}, function(err, response) {
+		
+			if (!(response.reservationSet) || response.reservationSet.length==0) {
 				//noop, still waiting
 			} else {
 				//done waiting, it is ready
@@ -73,7 +94,7 @@ exports.waitForImageState = function(config, imageId, requiredState, frequencyMi
 			"Filter.2.Name": "state",
 			"Filter.2.Value": requiredState}, function(err, response) {
 		
-			if (response.imagesSet.length==0) {
+			if (!(response.imagesSet) || response.imagesSet.length==0) {
 				//noop, still waiting
 			} else {
 				//done waiting, it is ready
@@ -95,7 +116,7 @@ exports.waitForImageExist = function(config, imageId, frequencyMilliseconds, cal
 			"Filter.1.Name": "image-id", 
 			"Filter.1.Value.1": imageId}, function(err, response) {
 		
-			if (response.imagesSet.length==0) {
+			if (!(response.imagesSet) || response.imagesSet.length==0) {
 				//noop, still waiting
 			} else {
 				//done waiting, image exists
