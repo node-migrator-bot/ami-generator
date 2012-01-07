@@ -1,21 +1,31 @@
 var ec2 = require("ec2");
+var logger = require('winston').loggers.get('amigen-console');
 
 call = function(config, command, parameters, callback) {
 
 	// Create an instance of the AmazonEC2Client.
-    var client = ec2.createClient(
-        { key:      config.AWS_ACCESS_KEY_ID
-        , secret:   config.AWS_SECRET_ACCESS_KEY
+	var client = ec2.createClient(
+		{ key:      config.AWS_ACCESS_KEY_ID
+		, secret:   config.AWS_SECRET_ACCESS_KEY
 		, endpoint: config.endpoint || "us-east-1"
-    });
+	});
+	
+	var errState = false;
 	
 	//console.log('using endpoint ' + config.endpoint);
 	
 	client.call(command, parameters, function(response) {
-		callback(null, response);
+		if (errState)
+			logger.error('This should not happen!')
+		else if (!response) {
+			//strange scenario - null response means err, but we don't know what it is.
+			callback('unknown ec2 error');
+		} else
+			callback(null, response);
+		
 	});
 	
-	client.on("error", function(err) {
+	client.on("error", function(err, err2) {
 		if (err=="Error: connect Unknown system errno 10060") {
 			//retry, its a connection timeout
 			client.call(command, parameters, function(response) {
@@ -24,7 +34,8 @@ call = function(config, command, parameters, callback) {
 			
 			client.execute();
 		} else {
-			callback(err, null);
+			errState = true;
+			callback(err || err2);
 		}
 	});
 	
@@ -48,14 +59,17 @@ exports.waitForInstanceState = function(config, instanceId, requiredState, frequ
 			"Filter.2.Name": "instance-state-name",
 			"Filter.2.Value": requiredState}, function(err, response) {
 		
-			if (!(response.reservationSet) || response.reservationSet.length==0) {
+			if (err) 
+				return logger.error(err);
+
+			if (!response || !(response.reservationSet) || response.reservationSet.length==0) {
 				//noop, still waiting
 			} else {
 				//done waiting, it is ready
 				clearInterval(intervalId);
 				if (!done) {
 					done = true;
-					callback(null, response);
+					callback(null, instanceId);
 				}
 			}
 		});
@@ -69,14 +83,17 @@ exports.waitForInstanceExists = function(config, instanceId, frequencyMillisecon
 			"Filter.1.Name": "instance-id", 
 			"Filter.1.Value.1": instanceId}, function(err, response) {
 		
-			if (!(response.reservationSet) || response.reservationSet.length==0) {
+			if (err) 
+				return logger.error(err);
+
+				if (!response || !(response.reservationSet) || response.reservationSet.length==0) {
 				//noop, still waiting
 			} else {
 				//done waiting, it is ready
 				clearInterval(intervalId);
 				if (!done) {
 					done = true;
-					callback(null, response);
+					callback(null, instanceId);
 				}
 			}
 		});
@@ -94,14 +111,17 @@ exports.waitForImageState = function(config, imageId, requiredState, frequencyMi
 			"Filter.2.Name": "state",
 			"Filter.2.Value": requiredState}, function(err, response) {
 		
-			if (!(response.imagesSet) || response.imagesSet.length==0) {
+			if (err) 
+				return logger.error(err);
+				
+			if (!response || !(response.imagesSet) || response.imagesSet.length==0) {
 				//noop, still waiting
 			} else {
 				//done waiting, it is ready
 				clearInterval(intervalId);
 				if (!done) {
 					done = true;
-					callback(null, response);
+					callback(null, imageId);
 				}
 			}
 		});
@@ -116,14 +136,17 @@ exports.waitForImageExist = function(config, imageId, frequencyMilliseconds, cal
 			"Filter.1.Name": "image-id", 
 			"Filter.1.Value.1": imageId}, function(err, response) {
 		
-			if (!(response.imagesSet) || response.imagesSet.length==0) {
+			if (err) 
+				return logger.error(err);
+
+				if (!response || !(response.imagesSet) || response.imagesSet.length==0) {
 				//noop, still waiting
 			} else {
 				//done waiting, image exists
 				clearInterval(intervalId);
 				if (!done) {
 					done = true;
-					callback(null, response);
+					callback(null, imageId);
 				}
 			}
 		});

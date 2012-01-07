@@ -1,21 +1,30 @@
 #!/usr/bin/env node
 
-var perfectapi = require('perfectapi');    
-//var perfectapi = require('../../perfectapi/api.js');  
+var winston = require('winston');
+winston.loggers.add('amigen-console', {
+	console: {
+		level: 'info',
+		colorize: 'true'
+	}
+});
+var logger = winston.loggers.get('amigen-console');
+
+//var perfectapi = require('perfectapi');    
+var perfectapi = require('../../perfectapi/api.js');  
 var gen = require('../modules/generator/generator.js');
 var regions = require('../modules/ec2info/regions.js');
 var path = require('path');
 var fs = require('fs');
 
+
 var configPath = path.resolve(__dirname, '..', 'perfectapi.json');
 var parser = new perfectapi.Parser();
-
 parser.on("gen", function(config, callback) {
 	config = validateRootpath(config, function(err, config) {
 		if (err) {
 			callback(err, null);
 		} else {
-			console.log('generating...');
+			logger.info('generating...');
 
 			gen.getImageUsingConfig(config, function(err, amiId) {
 				if (err) {
@@ -24,7 +33,7 @@ parser.on("gen", function(config, callback) {
 					var result = {};
 					result.ami = amiId;
 					result.region = config.options.region;
-					console.log('ok, done - amiId = ' + amiId + ' in region ' + result.region);
+					logger.info('ok, done - amiId = ' + amiId + ' in region ' + result.region);
 					
 					callback(null, result);
 				}

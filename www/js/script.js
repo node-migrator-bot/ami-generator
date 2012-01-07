@@ -22,7 +22,7 @@ function showScriptsForDistro(distro) {
 	for(var i=0;i<scripts.length;i++) {
 	
 		if (scripts[i].indexOf(distro) == 0) {
-			var option = '<option>' + scripts[i] + '</option';
+			var option = '<option>' + scripts[i] + '</option>';
 			select.append(option);
 		}
 	}
@@ -46,7 +46,7 @@ $(function(){
 			var distro = data.scripts[i].replace(/\\/g, "/").split("/")[0];
 			if (distro != lastDistro) {
 			
-				var option = '<option ' + (distro=='ubuntu11.10' ? 'selected' : '') + '>' + distro + '</option';
+				var option = '<option ' + (distro=='ubuntu11.10' ? 'selected' : '') + '>' + distro + '</option>';
 				select.append(option);
 			
 			}
@@ -64,7 +64,7 @@ $(function(){
 		select.addClass('hasData');
 		for(var i=0;i<data.length;i++) {
 		
-			var option = '<option ' + (data[i]=='us-east-1' ? 'selected' : '') + '>' + data[i] + '</option';
+			var option = '<option ' + (data[i]=='us-east-1' ? 'selected' : '') + '>' + data[i] + '</option>';
 			select.append(option);
 		}
 	});

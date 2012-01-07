@@ -1,5 +1,6 @@
 var ec2 = require("./ec2proxy.js");
-
+var logger = require('winston').loggers.get('amigen-console');
+	
 exports.generateAMI = function(instanceId, uniqueName, lineage, config, callback) {
 
   var ec2config = {
@@ -7,25 +8,66 @@ exports.generateAMI = function(instanceId, uniqueName, lineage, config, callback
 		"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
 		"endpoint": config.options.region};
 	
-	var newImageId;
 	var nameLineage = GetNormalizedLineage(lineage, 2).substring(0,255);  //trim as needed
 	var description = GetNormalizedLineage(lineage).substring(0,255);
 	var name = (uniqueName.substring(0,8) + '-' + nameLineage).substring(0, 128)
 		.replace(/\./g, '_')
 		.replace(/,/g,'/');    
 	
-    console.log('About to create image from ' + instanceId + ' with name "' + name + '"');
+	logger.verbose('About to create image from ' + instanceId + ' with name "' + name + '"');
+
+	CreateImageUnlessItExists(ec2config, instanceId, description, name, uniqueName, callback);
+};
+
+function CreateImageUnlessItExists(ec2config, instanceId, description, name, uniqueName, callback) {
+	ec2.call(ec2config, "DescribeImages",  {
+		"Filter.1.Name": "name", 
+		"Filter.1.Value.1": name}, function(err, response) {
+		
+		if (err) {
+			//just retry
+			setTimeout(function() {
+				CreateImageUnlessItExists(ec2config, instanceId, description, name, uniqueName, callback);
+			}, 2000);
+			
+			return;
+		}
+		
+		if (!response || !(response.imagesSet) || response.imagesSet.length == 0) {
+			//nothing there yet
+			CreateImage(ec2config, instanceId, description, name, uniqueName, callback)
+		} else {
+			//something there
+			var newImageId = response.imagesSet[0].imageId;
+			WaitForImageAvailable(ec2config, newImageId, description, callback);			
+		}
+	});
+}
+
+function CreateImage(ec2config, instanceId, description, name, uniqueName, callback) {
+	ec2.call(ec2config, "CreateImage", {
+		InstanceId: instanceId,
+		Description: description,
+		Name: name
+	}, function(err, response) {
     
-    ec2.call(ec2config, "CreateImage", {
-        InstanceId: instanceId,
-        Description: description,
-        Name: name
-    }, function(err, response) {
-        newImageId = response.imageId;
-		console.log('requested AMI, id will be ' + newImageId + '...waiting...');
+
+		if (err) {
+			//image probably already exists. 
+			//loop back and try again, but give it a couple seconds...
+			logger.verbose('Retrying createimage for ' + name + '...');
+			logger.verbose(err);
+			setTimeout(function() {
+				CreateImageUnlessItExists(ec2config, instanceId, description, name, uniqueName, callback);
+			}, 2000);
+			
+			return;
+		}
+		
+		var newImageId = response.imageId;
+		logger.verbose('requested AMI, id will be ' + newImageId + '...waiting...');
 
 		//need to make sure the image is ready before we continue
-		//ec2.waitForImageState(ec2config, newImageId, 'available', 5000, function(result) {
 		ec2.waitForImageExist(ec2config, newImageId, 2000, function(result) {
 		
 			ec2.call(ec2config, "CreateTags", {
@@ -39,22 +81,59 @@ exports.generateAMI = function(instanceId, uniqueName, lineage, config, callback
 				"Tag.4.Key": "generatedOnOS",
 				"Tag.4.Value": process.platform
 			}, function(err, response) {
-				console.log('Tagged new AMI ' + newImageId);
+				if (err)
+					logger.error('FAILED to tag new AMI ' + newImageId + ': ' + err)
+				else
+					logger.verbose('Tagged new AMI ' + newImageId);
 			});
 			
 			ec2.call(ec2config, "TerminateInstances", {
 				InstanceId: instanceId
 			}, function(err, response) {
-				console.log('terminated instance ' + instanceId);
+				if (err)
+					logger.error('FAILED to terminate instance ' + instanceId + ': ' + err)
+				else
+					logger.verbose('terminated instance ' + instanceId);
 			});
 			
-			ec2.waitForImageState(ec2config, newImageId, 'available', 5000, function(result) {
-				console.log("Created a new AMI with id: " + newImageId);
-				callback(null, newImageId);
-			});
+			WaitForImageAvailable(ec2config, newImageId, description, callback);
 		});
 	});
-};
+}
+
+function WaitForImageAvailable(ec2config, newImageId, description, callback) {
+	ec2.waitForImageState(ec2config, newImageId, 'available', 5000, function(result) {
+		logger.info("Created a new AMI with id: " + newImageId);
+		callback(null, newImageId);
+		
+		//also do some cleanup
+		ec2.call(ec2config, "DescribeImages", {
+			"Filter.1.Name": "tag:lineage",
+			"Filter.1.Value": description
+		}, function(err, response) {
+		
+			if (err) return logger.error(err);
+			
+			if (response && response.imagesSet && response.imagesSet.length>1) {
+				for (var i=0;i<response.imagesSet.length;i++) {
+					var imageId = response.imagesSet[i].imageId;
+					
+					if (imageId != newImageId){
+						//delete it - it is outdated
+						ec2.call(ec2config, "DeregisterImage", {
+							"ImageId": imageId
+						}, function(err, response) {
+							
+							if (err) return logger.error(err);
+							
+							logger.verbose('cleaned up old AMI - ' + imageId);
+						});
+					}
+				}
+			}
+		});
+	});
+}
 
 function GetNormalizedLineage(lineage, start) {
 	start = start || 0;

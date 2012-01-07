@@ -4,61 +4,63 @@ var path = require("path");
 var crypto = require("crypto");
 var instanceGen = require(path.join(__dirname, 'instanceGen.js'));
 var amiGen = require(path.join(__dirname, 'amiGen.js'));
+var logger = require('winston').loggers.get('amigen-console');
+
 
 exports.getImageUsingConfig = function(config, callback) {
-    /*
-    example config (perfectapi compatible):
-    {   
-		"environment" : {
-			"AWS_ACCESS_KEY_ID":"abuhgsdjashg",
-			"AWS_SECRET_ACCESS_KEY":"ajdshkh234hjkhask"
-		};
-		"options": {
-			"root": "scripts"
-		,   "ami": "ami-a562a9cc"
-		}
-    ,   "scripts": ["Node0.4.12", "Node0.4.12/cloud9", "NginxProxy"]
-    }
-    
-    */
-    
-    if (config.environment.AWS_ACCESS_KEY_ID=="") {
-        callback("AWS_ACCESS_KEY_ID environment variable is required.");
-        return;
-    };
-    if (config.environment.AWS_SECRET_ACCESS_KEY=="") {
-        callback("AWS_SECRET_ACCESS_KEY environment variable is required.");
-        return;
-    };    
+	/*
+	example config (perfectapi compatible):
+	{   
+	"environment" : {
+		"AWS_ACCESS_KEY_ID":"abuhgsdjashg",
+		"AWS_SECRET_ACCESS_KEY":"ajdshkh234hjkhask"
+	};
+	"options": {
+		"root": "scripts"
+	,   "ami": "ami-a562a9cc"
+	}
+	,   "scripts": ["Node0.4.12", "Node0.4.12/cloud9", "NginxProxy"]
+	}
+	
+	*/
+	
+	if (config.environment.AWS_ACCESS_KEY_ID=="") {
+			callback("AWS_ACCESS_KEY_ID environment variable is required.");
+			return;
+	};
+	if (config.environment.AWS_SECRET_ACCESS_KEY=="") {
+			callback("AWS_SECRET_ACCESS_KEY environment variable is required.");
+			return;
+	};    
     
 	var options = config.options;
-    var rootPath = path.resolve(options.root);
+	var rootPath = path.resolve(options.root);
     
-    //take the list of scripts and sort and normalize them.
-    var scripts = [];
+	//take the list of scripts and sort and normalize them.
+	var scripts = [];
 	var osSep = (process.platform=='win32') ? '\\': '/';
-    for(var i=0;i<config.scripts.length;i++) {
-        var scriptParts = config.scripts[i].split(osSep);
-        
-        var currentScript = '';
-        for(var j=0;j<scriptParts.length;j++) {
-            var sep = (j==0) ? '': osSep;
-            currentScript = currentScript + sep + scriptParts[j];
-            
-            scripts.push(currentScript);
-        }
-    };
-    scripts = scripts.sort();
-    var scriptsWithoutDups = [];
-    var lastScript = '';
-    for(var i=0;i<scripts.length;i++) {
-        if (scripts[i] != lastScript) {
-            scriptsWithoutDups.push(scripts[i]);
-            lastScript = scripts[i];
-        };
-    }
+	for(var i=0;i<config.scripts.length;i++) {
+		var scriptParts = config.scripts[i].split(osSep);
+		
+		var currentScript = '';
+		for(var j=0;j<scriptParts.length;j++) {
+			var sep = (j==0) ? '': osSep;
+			currentScript = currentScript + sep + scriptParts[j];
+			
+			scripts.push(currentScript);
+		}
+	};
+	scripts = scripts.sort(function(a,b) {return (a.toLowerCase() > b.toLowerCase()) });
+	var scriptsWithoutDups = [];
+	var lastScript = '';
+	for(var i=0;i<scripts.length;i++) {
+			if (scripts[i] != lastScript) {
+					scriptsWithoutDups.push(scripts[i]);
+					lastScript = scripts[i];
+			};
+	}
     
-    console.log('scripts = ' + scriptsWithoutDups);
+	logger.info('scripts = ' + scriptsWithoutDups);
 	
 	//validate scripts exist
 	for(var i=0;i<scriptsWithoutDups.length;i++) {
@@ -75,7 +77,7 @@ exports.getImageUsingConfig = function(config, callback) {
 		if (!path.existsSync(configFilePath)) return callback('Cannot find config containing AMI ids at ' + configFilePath);
 		
 		var amiConfig = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
-		//console.log(JSON.stringify(amiConfig.Mappings.AWSRegionArch2AMI["us-east-1"]));
+		//logger.verbose(JSON.stringify(amiConfig.Mappings.AWSRegionArch2AMI["us-east-1"]));
 		var regionConfig = amiConfig.Mappings.AWSRegionArch2AMI[options.region];
 		if (!regionConfig) return callback('Region ' + options.region + ' does not have a base AMI specified.  Please use --ami option to specify an AMI directly');
 		var bitNess = (options.bit32) ? "32" : "64";
@@ -86,9 +88,14 @@ exports.getImageUsingConfig = function(config, callback) {
 	}
 
 	var baseAMI = options.ami;
-	console.log('root = ' + options.root);
-	console.log('baseAMI = ' + options.ami);
+	logger.verbose('root = ' + options.root);
+	logger.verbose('baseAMI = ' + options.ami);
 
+	var ec2config = {
+		"AWS_ACCESS_KEY_ID": config.environment.AWS_ACCESS_KEY_ID,
+		"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
+		"endpoint": config.options.region};
+		
 	//now we have a list of scripts that can be executed in order    
 	var myScript = scriptsWithoutDups.shift();
 	var lineage = 'amigen,' + baseAMI + ',' + myScript;
@@ -101,6 +108,10 @@ exports.getImageUsingConfig = function(config, callback) {
 					lineage = lineage + ',' + myScript;
 					getImage(rootPath, myScript, lineage, newAMI, config, recurse);  //handy recursion trick, *evil laugh*
 			} else {
+					//all done.
+					if (config.options.publish)
+						publishAmi(ec2config, newAMI);
+
 					callback(null, newAMI);
 			}
 	});
@@ -114,59 +125,47 @@ getImage = function(
 	config, 	  //full config provided via API
 	callback) {
     
-	console.log('getting image from ' + path.join(rootPath, script) + ' using base ' + baseAMI);
+	logger.verbose('getting image from ' + path.join(rootPath, script) + ' using base ' + baseAMI);
 	
 	getUserDataHash(rootPath, script, baseAMI, function(err, uniqueName, userData64) {
-		if (err) {
-				callback(err);
-		} else {
+		if (err) return callback(err);
 		
-			var ec2config = {
-				"AWS_ACCESS_KEY_ID": config.environment.AWS_ACCESS_KEY_ID,
-				"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
-				"endpoint": config.options.region};
+		var ec2config = {
+			"AWS_ACCESS_KEY_ID": config.environment.AWS_ACCESS_KEY_ID,
+			"AWS_SECRET_ACCESS_KEY": config.environment.AWS_SECRET_ACCESS_KEY,
+			"endpoint": config.options.region};
+		
+		logger.verbose('Unique name of image should be ' + uniqueName);
+				
+		//see if we can find the image...
+		ec2.call(ec2config, "DescribeImages", {
+			"Filter.1.Name": "tag:uniqueName",
+			"Filter.1.Value.1": uniqueName
+		}, function(err, response) {
 			
-			console.log('Unique name of image should be ' + uniqueName);
-					
-			//see if we can find the image...
-			ec2.call(ec2config, "DescribeImages", {
-				"Filter.1.Name": "tag:uniqueName",
-				"Filter.1.Value.1": uniqueName
-			}, function(err, response) {
+			if (err) return callback(err);
+			
+			if (response.imagesSet 
+			&& response.imagesSet.length > 0) {
+			
+				var imageId = response.imagesSet[0].imageId;
+				logger.verbose('found matching image ' + imageId);
 				
-				if (err) return callback(err);
-				
-				if (response.imagesSet 
-				&& response.imagesSet.length > 0) {
-				
-					var imageSet = response.imagesSet;
-					console.log('found matching image ' + imageSet[0].imageId);
-					if (config.options.publish)
-						publishAmi(ec2config, imageSet[0].imageId);
+				ec2.waitForImageState(ec2config, imageId, 'available', 2000, callback);
+			} else {
+				//does notexist yet
+				logger.verbose('no matching image yet - will generate now...could take a while...');
+				instanceGen.generateInstance(userData64, baseAMI, uniqueName, config, function(err, instanceId) {
+					if (err) return callback(err);
+
+					amiGen.generateAMI(instanceId, uniqueName, lineage, config, function(err, amiId) {
+						if (err) return callback(err, amiId);
 						
-					callback(null, imageSet[0].imageId);
-				} else {
-					//does notexist yet
-					console.log('no matching image yet - will generate now...could take a while...');
-					instanceGen.generateInstance(userData64, baseAMI, uniqueName, config, function(err, instanceId) {
-						if (err) {
-							callback(err);
-						} else {
-							amiGen.generateAMI(instanceId, uniqueName, lineage, config, function(err, amiId) {
-								if (err) {
-									callback(err, amiId);
-								} else {
-									if (config.options.publish)
-										publishAmi(ec2config, amiId);
-										
-									callback(null, amiId);
-								}
-							});
-						}
+						callback(null, amiId);
 					});
-				}
-			});
-		}
+				});
+			}
+		});
 	});
 };
 
@@ -175,9 +174,9 @@ function publishAmi(ec2config, amiId, callback) {
 		"ImageId": amiId,
 		"LaunchPermission.Add.1.Group": "all"
 	}, function(err, response) {
-		if (err) return callback(err);
+		if (err && callback) return callback(err);
 		
-		console.log('AMI ' + amiId + ' has been published');
+		logger.verbose('AMI ' + amiId + ' has been published');
 		
 		if (callback) callback();
 	});
@@ -258,7 +257,7 @@ getPreUserData = function(rootPath, script, callback) {
     
     ws.on('close', function() {
         var preData = fs.readFileSync(newFile);
-        console.log('preData generated, length = ' + preData.length);
+        logger.verbose('preData generated, length = ' + preData.length);
     
         callback(null, preData);
     });    
@@ -289,7 +288,7 @@ getPostUserData = function(rootPath, script, callback) {
     
     ws.on('close', function() {
         var postData = fs.readFileSync(newFile);
-        console.log('postData generated, length = ' + postData.length);
+        logger.verbose('postData generated, length = ' + postData.length);
     
         callback(null, postData);
     });    
@@ -320,7 +319,7 @@ getInstallScript = function(rootPath, script, callback) {
     
     ws.on('close', function() {
         var installData = fs.readFileSync(newFile);
-        console.log('install generated, length = ' + installData.length);
+        logger.verbose('install generated, length = ' + installData.length);
     
         callback(null, installData);
     });    
@@ -333,7 +332,7 @@ getInstallScript = function(rootPath, script, callback) {
 getUserData = function(rootPath, script, callback) {
     var myPath = path.resolve(rootPath, script);
     
-    console.log('path = ' + myPath);
+    logger.verbose('path = ' + myPath);
     
     var newFile = path.join(findTempDirectory(), 'user-data.tmp');
     var ws = fs.createWriteStream(newFile);
@@ -372,7 +371,7 @@ getUserData = function(rootPath, script, callback) {
     
     ws.on('close', function() {
         var userData = fs.readFileSync(newFile);
-        console.log('userdata generated, length = ' + userData.length);
+        logger.verbose('userdata generated, length = ' + userData.length);
     
         callback(null, userData);
     });
