@@ -30,10 +30,12 @@ function showScriptsForDistro(distro) {
 
 
 $(function(){
+	prettyPrint();		//see http://google-code-prettify.googlecode.com/svn/trunk/README.html
+	
 	showServerDownMessageIfNothingHappens('region');
 	showServerDownMessageIfNothingHappens('distro');
 
-	perfectapi.callApi('scripts', function(err, data) {
+	amigen.callApi('scripts', function(err, data) {
 		if (err)  return;
 		
 		var hidden = $('#allScripts');
@@ -57,7 +59,7 @@ $(function(){
 		showScriptsForDistro('ubuntu11.10')
 	});
 
-	perfectapi.callApi('regions', function(err, data) {
+	amigen.callApi('regions', function(err, data) {
 		if (err)  return;
 		
 		var select = $('#region');
@@ -98,7 +100,7 @@ $(function(){
 		console.log(config);
 		
 		$('.pleaseWait').show();
-		perfectapi.callApi('gen', config, function(err, result) {
+		amigen.callApi('gen', config, function(err, result) {
 			$('.pleaseWait').hide();
 			if (err) return;
 			

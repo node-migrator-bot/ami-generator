@@ -1,4 +1,4 @@
-{	
+{	"exports": "amigen",
 	"signature": [
 		{ 
 			"name": "gen",
