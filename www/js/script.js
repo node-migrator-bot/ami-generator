@@ -9,7 +9,7 @@ function showServerDownMessageIfNothingHappens(elementIdToCheck) {
 		if (!check) {
 			$("#serviceDown").show();
 		}
-	}, 4000)
+	}, 4000);
 }
 
 function showScriptsForDistro(distro) {
