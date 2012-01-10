@@ -50,7 +50,12 @@ exports.getImageUsingConfig = function(config, callback) {
 			scripts.push(currentScript);
 		}
 	};
-	scripts = scripts.sort(function(a,b) {return (a.toLowerCase() > b.toLowerCase()) });
+	scripts = scripts.sort(function(A,B) {
+		var a=A.toLowerCase(), b=B.toLowerCase();
+		if (a < b) return -1;
+		if (b < a) return 1;
+		return 0;
+	});
 	var scriptsWithoutDups = [];
 	var lastScript = '';
 	for(var i=0;i<scripts.length;i++) {

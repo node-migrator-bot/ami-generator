@@ -53,7 +53,12 @@ parser.on("scripts", function(config, callback) {
 			walkPathSync(options.root, '', paths);
 			
 			var result = {};
-			result.scripts = paths;
+			result.scripts = paths.sort(function(A,B) {
+				var a=A.toLowerCase(), b=B.toLowerCase();
+				if (a < b) return -1;
+				if (b < a) return 1;
+				return 0;
+			});
 			callback(null, result);			
 		}
 	});
