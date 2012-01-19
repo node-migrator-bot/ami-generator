@@ -7,7 +7,7 @@
 			"verb": "POST",
 			"parameter": {"name": "scripts", "required":"true", "type":"multi"},
 			"options": 
-				[{"option": "root", "long":"root", "short":"r", "required":"false", "default":"scripts", "description":"specify the root folder where scripts can be found"},
+				[{"option": "root", "long":"root", "short":"r", "required":"false", "description":"specify the root folder where scripts can be found"},
 				 {"option": "ami", "required":"false", "long":"ami", "short":"a", "description":"the AMI name that will form the basis of the new images"},
 				 {"option": "region", "default":"us-east-1", "long":"region", "short":"e", "description":"The amazon region in which to create the image"},
 				 {"flag": "bit32", "default":"false", "long":"32", "short":"3", "description":"if set, the resulting AMI will be a 32 bit image.  Ignored if a specific base AMI is specified (--ami)."},
@@ -24,7 +24,7 @@
 			"description": "Finds the available scripts, which are stored in subfolders of the root (see root option)",
 			"verb": "GET",
 			"options": 
-				[{"option": "root", "required":"false", "long":"root", "default":"scripts", "short":"r"}],
+				[{"option": "root", "required":"false", "long":"root", "short":"r", "description":"specify the root folder where scripts can be found"}],
 			"returns": 
 				[{"name":"scripts", "type":"list", "description":"List of scripts relative to the root path"} ]
 		},
