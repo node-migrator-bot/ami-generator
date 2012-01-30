@@ -3,7 +3,7 @@
 		{ 
 			"name": "gen",
 			"synopsis": "Generates a new Amazon EC2 image using the supplied scripts",
-			"description": "Using a baseAMI and a set of scripts, builds up (or finds existing) AMI image that matches the criteria",
+			"description": "Using a baseAMI and a set of scripts, builds up (or finds existing) AMI image that matches the criteria.",
 			"verb": "POST",
 			"parameter": {"name": "scripts", "required":"true", "type":"multi"},
 			"options": 
@@ -37,7 +37,7 @@
 				[{"name":"regions", "type":"list", "description":"List of amazon regions"} ]
 		}
 	], 
-	"path": "apis",
+	"path": "amigen",
 	"environment": [
 		{"parameter": "AWS_ACCESS_KEY_ID", "long":"awskeyid", "short":"k", "required":"true"},
 		{"parameter": "AWS_SECRET_ACCESS_KEY", "long":"awssecretkey", "short":"s", "required":"true"}

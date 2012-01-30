@@ -9,8 +9,8 @@ winston.loggers.add('amigen-console', {
 });
 var logger = winston.loggers.get('amigen-console');
 
-var perfectapi = require('perfectapi');    
-//var perfectapi = require('../../perfectapi/api.js');  
+//var perfectapi = require('perfectapi');    
+var perfectapi = require('../../perfectapi/api.js');  
 var gen = require('../modules/generator/generator.js');
 var regions = require('../modules/ec2info/regions.js');
 var path = require('path');
