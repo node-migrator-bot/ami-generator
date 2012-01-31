@@ -532,12 +532,16 @@
     <target name="-js.all.minify" depends="-mkdirs" description="(PRIVATE) Minifies the scripts.js files created by js.scripts.concat">
         <echo message="Minifying scripts"/>
         <copy todir="${dir.intermediate}/">
-            <fileset dir="${dir.source}/" includes="${dir.js}/**/*.min.js"  />
+            <fileset dir="${dir.source}/" >
+				<include name="${dir.js}/**/*.min.js" />
+				<include name="${dir.js}/**/lang-*.js" />
+			</fileset>
         </copy>
         <apply executable="java" parallel="false">
             <fileset dir="${dir.source}/" >
                 <include name="${dir.js}/**/*.js"/>
                 <exclude name="${dir.js}/**/*.min.js"/>
+ 				<exclude name="${dir.js}/**/lang-*.js" />
             </fileset>
             <arg line="-jar"/>
             <arg path="./${dir.build.tools}/${tool.yuicompressor}"/>
