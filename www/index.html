@@ -44,8 +44,9 @@
 				<a class="brand" href="#">amigen</a>
 				<ul class="nav">
 					<li class="active"><a href="#gen">Generator</a></li>
+					<li><a href="#about2">About this webpage</a></li>
 					<li><a href="#about1">About amigen</a></li>
-					<li><a href="#about2">About this page</a></li>
+					<li><a href="http://www.perfectapi.com/" target="_blank">PerfectAPI home page</a>
 				</ul>
 				<!--
 				<form action="" class="pull-right">
@@ -126,6 +127,52 @@
 				</fieldset>
 			</form>
 			<p />
+			<div class="container" id="about2">
+				<h1>About this page <small>PerfectAPI - your API, done right</small></h1>
+				<p>This page is a demo page for PerfectAPI - a set of open-source tools for creating service APIs.  The projects that make up the toolset are <a href="https://github.com/perfectapi" target="_blank">hosted on GitHub</a>.  Some of the features that are used in this app are:</p>
+				<dl>
+				<dt>Self-configuring endpoint</dt><dd>Simply add a script reference to the provided javascript file in your HTML and then you can directly call the exposed methods of that API without further knowledge of urls</dd>
+				<dt>Simple rpc-style calls</dt><dd>Calls to the api are simple asynchronous calls in the rpc style (see code below).  There is no Ajax, JSON, JSONP, REST to worry about - its just simple Javascript code</dd>
+				<dt>Long-running API calls</dt><dd>Generating an image can take a while.  Normally, this would timeout after 15-30 seconds, however this does not happen with PerfectAPI.</dd>
+				<dt>Test Page</dt><dd>This page is a custom page, but there is also an <a href="https://services.perfectapi.com/amigen/testapp/" target="_blank">automatically generated "test" page</a> for the API, where you can explore the API and see actual code in the language of your choice.</dd>
+				</dl>
+				
+				<p>This page is static html5 hosted on Amazon S3 using <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/WebsiteHosting.html" target="_blank">Amazon's guidelines</a>.  The reason that the page is able to have non-static functionality is that it uses Javascript to communicate with a service-backend on another server.  There are several Javascript calls to the backend service on this page:
+				<pre class="prettyprint">
+&lt;!-- Reference the service endpoint.  This is all the configuration you need. --&gt;
+&lt;script src="https://services.perfectapi.com/amigen/jquery.perfectapi.js"&gt;&lt;/script&gt;
+
+&lt;!-- Use the API. --&gt;
+&lt;script&gt;
+amigen.callApi('scripts', function(err, data) {
+  //binding code removed for clarity - populate select boxes with lists of distros and scripts
+});
+
+amigen.callApi('regions', function(err, data) {
+  //binding code removed for clarity - populate select box with lists of AWS regions
+});
+&lt;/script&gt;</pre>
+				and to generate the image (simplified):
+				<pre class="prettyprint">
+//get config from page
+var config = {};
+config.scripts = $('#amiScripts').val();
+config.options = {};
+config.options.region = $('#region').val();
+config.options.publish = true;
+		
+amigen.callApi('gen', config, function(err, result) {
+  //generates an image using the supplied config
+  $('#amiLink').text(result.ami);
+  $('#amiLink').attr("href", "https://console.aws.amazon.com/ec2/home?region=" + result.region + "#launchAmi=" + result.ami);
+  $('#imageSuccess').show();
+});</pre>
+				</p>
+				<p>This syntax for the remote procedure call (rpc) is the same as all PerfectAPIs - a command name (<code>gen</code> above), an optional <code>config</code>, and a callback function which will be executed when the command is done.  It does not matter how long the command takes - it will not timeout.
+				</p>
+
+			</div>
+			<p />
 			<div class="container" id="about1">
 				<h1>About ami-generator <small></small></h1>
 				<p>The app came into being because of my own need to find trustworthy Linux images with the software I needed.  It is easy to find a good base image,
@@ -137,34 +184,7 @@
 				<p>If there is software that you would like added, please let me know at <a href="mailto:ami-requests@perfectapi.com">ami-requests@perfectapi.com</a>.  The repository for this software together with the <a href="https://github.com/perfectapi/ami-generator/tree/master/scripts" target="_blank">scripts</a> is on Github - <a href="https://github.com/perfectapi/ami-generator" target="_blank">https://github.com/perfectapi/ami-generator</a>.</p>
 				
 			</div>
-			<div class="container" id="about2">
-				<h1>About this page <small></small></h1>
-				<p>This page is static html5 hosted on Amazon S3 using <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/WebsiteHosting.html" target="_blank">Amazon's guidelines</a>.  The reason that the page is able to have non-static functionality is that it uses <a href="https://github.com/perfectapi/node-perfectapi" target="_blank">PerfectAPI</a> to communicate with a service-backend on another server.  PerfectAPI is an API framework that API authors can use to expose their API to any platform (Javascript in this case).  There are 2 javascript calls on this page:
-				<pre class="prettyprint">
-perfectapi.callApi('scripts', function(err, data) {
-  //populates select boxes with lists of distros and scripts
-  ...
-});</pre>
-				and to generate the image (simplified):
-				<pre class="prettyprint">
-//get config from page
-var config = {};
-config.scripts = $('#amiScripts').val();
-config.options = {};
-config.options.region = $('#region').val();
-config.options.publish = true;
-		
-perfectapi.callApi('gen', config, function(err, result) {
-  //generates an image using the supplied config
-  $('#amiLink').text(result.ami);
-  $('#amiLink').attr("href", "https://console.aws.amazon.com/ec2/home?region=" + result.region + "#launchAmi=" + result.ami);
-  $('#imageSuccess').show();
-});</pre>
-				</p>
-				<p>This syntax for the remote procedure call (rpc) is the same as all PerfectAPIs - a command name (<code>gen</code> above), an optional <code>config</code>, and a callback function which will be executed when the command is done.  It does not matter how long the command takes (well, up to 24 hours) - using the magic of WebSockets it will never timeout.
-				</p>
 
-			</div>
 						<!--
 			<div class="row">
 				<div class="span10">
