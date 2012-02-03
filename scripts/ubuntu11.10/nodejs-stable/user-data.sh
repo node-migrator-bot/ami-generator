@@ -1,7 +1,7 @@
-sudo apt-get install -y python-software-properties
-sudo add-apt-repository ppa:chris-lea/node.js
-sudo apt-get update -y
-sudo apt-get install -y nodejs
+apt-get install -y python-software-properties
+add-apt-repository -y ppa:chris-lea/node.js
+apt-get update -y
+apt-get install -y nodejs
 
 
 cat >> /home/$MY_USER/readme.txt <<EOF
