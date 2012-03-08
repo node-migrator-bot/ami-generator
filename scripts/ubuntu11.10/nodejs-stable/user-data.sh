@@ -1,8 +1,10 @@
 apt-get install -y python-software-properties
 add-apt-repository -y ppa:chris-lea/node.js
 apt-get update -y
-apt-get install -y nodejs
+apt-get install -y nodejs nodejs-dev
 
+# install npm (again!?!)
+curl http://npmjs.org/install.sh | clean=yes sh
 
 cat >> /home/$MY_USER/readme.txt <<EOF
 
