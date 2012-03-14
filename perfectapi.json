@@ -23,6 +23,7 @@
 			"synopsis": "Lists available scripts for use in gen",
 			"description": "Finds the available scripts, which are stored in subfolders of the root (see root option)",
 			"verb": "GET",
+			"maxage": 60,
 			"options": 
 				[{"option": "root", "required":"false", "long":"root", "short":"r", "description":"specify the root folder where scripts can be found"}],
 			"returns": 
@@ -33,6 +34,7 @@
 			"synopsis": "Lists available Amazon regions",
 			"description": "Lists the available regions",
 			"verb": "GET",
+			"maxage": 172800,
 			"returns": 
 				[{"name":"regions", "type":"list", "description":"List of amazon regions"} ]
 		}
